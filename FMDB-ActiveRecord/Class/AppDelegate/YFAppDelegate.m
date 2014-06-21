@@ -32,8 +32,8 @@
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
     
-    NSMutableString * resultStr =  [NSMutableString stringWithString:@"姓名\t性别\t年龄\n"];
-    FMResultSet * result = nil;
+//    NSMutableString * resultStr =  [NSMutableString stringWithString:@"姓名\t性别\t年龄\n"];
+//    FMResultSet * result = nil;
     // 测试 getTalbe: limit: offset方法.
 //    result = [db getTable: @"persons" limit: 10 offset:0];
     
@@ -103,19 +103,32 @@
 //    [self showAlertViewWithMessage: temp];
     
     
-    result = [db selectSum: @"intAge" from: @"persons"];
-    NSString *temp = nil;
-    while ([result next]) {
-        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"intAge"]];
-    }
-    [self showAlertViewWithMessage: temp];
+//    result = [db selectSum: @"intAge" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"intAge"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
     
-
+//    [db insert: @"persons" data: @{@"pkName": @"颜风3", @"intAge": [NSNumber numberWithInteger: 20], @"intSex": [NSNumber numberWithBool:NO]}];
+    
+//    [db insert: @"persons" batch:@[@{@"pkName": @"颜风3", @"intAge": [NSNumber numberWithInteger: 20], @"intSex": [NSNumber numberWithBool:NO]}]];
+//    [db update: @"persons" data:@{ @"intAge": [NSNumber numberWithInteger: 180], @"intSex": [NSNumber numberWithBool:NO]} where:@{@"intAge": [NSNumber numberWithInteger: 200]}];
+    
+//    [db update: @"persons" batch:@[@{ @"intAge": [NSNumber numberWithInteger: 190], @"intSex": [NSNumber numberWithBool:NO]}] where:@{@"intAge": [NSNumber numberWithInteger: 180]}];
+    
+//    [db remove:@[@"persons", @"TTAnimals"] where:@{@"pkName":@"s"}];
+    
+    
 //    while ([result next]) {
 //        [resultStr appendString:[NSString stringWithFormat:@"%@\t%d\t%lu\n", [result stringForColumn: @"pkName"], [result boolForColumn: @"intSex"], [result longForColumn: @"intAge"]]];
 //    }
 //    [self showAlertViewWithMessage: resultStr];
-//    
+    
+//    [db empty: @"TTAnimals"];
+//    [db truncate: @"TTAnimals"];
+    
+    
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

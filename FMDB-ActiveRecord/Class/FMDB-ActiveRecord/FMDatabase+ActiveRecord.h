@@ -8,6 +8,8 @@
 
 #import "FMDatabase.h"
 
+typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!< 单次删除数据的block.
+
 //!!!:项目目标: 1.与原有FMDB代码,兼容! 2.简洁. 3.优雅.
 // !!!:可能必须使用延展,才能实现既定需求!
 // !!!:基本迭代规划:1.实现 2.优化
@@ -19,6 +21,9 @@
  4.形参本身的命名更规范.
  5.或许需要一个单独的类,来处理字符串的拼接.
  6.根据ARC和MRC,自动编译.(参考FMDB的实现策略)!
+ 7.借助FMDB,写一个超轻量级的数据库管理程序!(网页版?)
+ 8.配上每条个方法对应产生的sql语句.
+ 9.支持Method Chaining方法链.
  */
 @interface FMDatabase (ActiveRecord)
 
@@ -202,20 +207,95 @@
 - (void) orHaving;
 - (void) orderBy;
 - (void) limit;
- */
 - (void) countAllResults;
-- (void) countAll;
-- (void) insert;
-- (void) insertBatch;
+- (void) countAll;*/
+
+// FIXME: 可以利用iskind语法,合并单次操作和批操作.
+/**
+ *  插入数据.
+ *
+ *  @param table 表名.
+ *  @param data  字典,存储要插入的数据.以字段名为key,以要设置的值为value.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+// !!!:CI提供了自动转义功能,处于安全考虑,机制是什么!`加个前缀吗?
+- (BOOL) insert: (NSString *) table
+           data: (NSDictionary *) data;
+
+/**
+ *  批量添加数据.
+ *
+ *  @param table 表名.
+ *  @param batch 数组,存放要插入的数据的字典,字典以字段名为key,以要设置的值为value.
+ *
+ *  @return YES,添加成功;NO,添加失败.
+ */
+// !!!:批量操作,是否添加回滚支持?
+- (BOOL) insert: (NSString *) table
+          batch: (NSArray *) batch;
+// !!!:暂无法实现.
+/*
 - (void) set;
-- (void) update;
-- (void) updateBatch;
-- (void) delete;
-- (void) emptyTable;
-- (void) truncate;
+ */
+/**
+ *  更新数据.
+ *
+ *  @param table 表名.
+ *  @param data  字典,存储要插入的数据.以字段名为key,以要设置的值为value.
+ *  @param where 只含有一个键值对的字典,以列名为键,以筛选条件为值.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) update:(NSString *) table
+           data: (NSDictionary *) data
+          where: (NSDictionary *) where;
+
+/**
+ *  批量更新数据.
+ *
+ *  @param table 表名.
+ *  @param batch 数组,存放要插入的数据的字典,字典以字段名为key,以要设置的值
+ *  @param where 只含有一个键值对的字典,以列名为键,以筛选条件为值.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) update: (NSString *) table
+          batch: (NSArray *) batch
+          where: (NSDictionary *) where;
+
+/**
+ *  删除数据.
+ *
+ *  @param tables 表名.你也可以传入多个表名字符串组成的数组,同时在多个表中删除数据.
+ *  @param where  只含有一个键值对的字典,以列名为键,以筛选条件为值.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) remove: (id) tables
+          where: (NSDictionary *) where;
+
+/**
+ *  清空表.
+ *
+ *  @param table 表名.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) empty: (NSString *)table;
+
+// !!!:sqlite 不符合truncate命令!
+/*
+- (BOOL) truncate: (NSString *) table;
+*/
+
+// !!!:以下方法,暂时无法实现.(能力不够!)
+/*
 - (void) startCache;
 - (void) stopCache;
 - (void) flushCache;
-
+*/
+ 
 # pragma mark - 工具方法.
+
 @end
