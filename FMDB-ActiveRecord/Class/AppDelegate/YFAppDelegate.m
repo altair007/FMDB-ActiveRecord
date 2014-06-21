@@ -128,6 +128,10 @@
 //    [db empty: @"TTAnimals"];
 //    [db truncate: @"TTAnimals"];
     
+//    [db insert: @"Person" data:@[@{@"pkName": @"周杰伦"}, @{@"pkName": @"邓紫棋"}]];
+    
+    
+    [db update: @"Person" data:@[@{@"pkName": @"大爱颜风2"}, @{@"pkName": @"大爱杰伦"}] where:@[@{@"pkName": @"大爱颜风"}, @{@"pkName": @"周杰伦"}]];
     
     [db close];
     [self.window makeKeyAndVisible];

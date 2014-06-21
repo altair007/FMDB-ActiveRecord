@@ -8,12 +8,44 @@
 
 #import "FMDatabase.h"
 
-typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!< 单次删除数据的block.
+// ???:无法无法支持大或小于判断的where子句!
+/**
+ *  block,执行单次添加操作.
+ *
+ *  @param table 表名.
+ *  @param data  字典,仅含有一个键值对,以列名为键,以筛选条件为值.
+ *
+ *  @return YES, 操作成功;NO, 操作失败.
+ */
+typedef BOOL (^InsertSingleBlock) (NSString * table, NSDictionary * data);
+
+/**
+ *  block,执行单次更新操作.
+ *
+ *  @param table 表名.
+ *  @param data  字典,存储要插入的数据.以字段名为key,以要设置的值为value.
+ *  @param where 字典,仅含有一个键值对,以列名为键,以筛选条件为值.
+ *
+ *  @return YES, 操作成功;NO, 操作失败.
+ */
+typedef BOOL (^UpdateSingleBlock) (NSString * table, NSDictionary * data, NSDictionary * where);
+
+/**
+ *  block,执行单次删除操作.
+ *
+ *  @param talbe 表名.
+ *  @param where 字典,仅含有一个键值对,以列名为键,以筛选条件为值.
+ *
+ *  @return YES,操作成功;NO, 操作失败.
+ */
+typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where);
+
+
 
 //!!!:项目目标: 1.与原有FMDB代码,兼容! 2.简洁. 3.优雅.
 // !!!:可能必须使用延展,才能实现既定需求!
 // !!!:基本迭代规划:1.实现 2.优化
-// !!!:
+
 /*可能的优化方向:
  1.增加安全性检查(FMDB自带吗?).
  2.将getTable:和getTable:limit:offset:等方法合并,使共用getTable:limit:offset:的逻辑.
@@ -210,30 +242,22 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!<
 - (void) countAllResults;
 - (void) countAll;*/
 
-// FIXME: 可以利用iskind语法,合并单次操作和批操作.
 /**
  *  插入数据.
  *
  *  @param table 表名.
- *  @param data  字典,存储要插入的数据.以字段名为key,以要设置的值为value.
+ *  @param data  字典或者存储字典对象的数组.字典以字段名为key,以要设置的值为value.
+ *               传入数组,将执行批量操作.任一操作失败,则所有操作都将会被取消并会将数
+ *               据库恢复到第一个操作执行前的状态.
  *
- *  @return YES,成功;NO,失败.
+ *  @return YES,操作成功;NO,操作失败.
  */
 // !!!:CI提供了自动转义功能,处于安全考虑,机制是什么!`加个前缀吗?
+// !!!: 批量操作,有无不要提供回滚功能!
 - (BOOL) insert: (NSString *) table
-           data: (NSDictionary *) data;
+           data: (id) data;
 
-/**
- *  批量添加数据.
- *
- *  @param table 表名.
- *  @param batch 数组,存放要插入的数据的字典,字典以字段名为key,以要设置的值为value.
- *
- *  @return YES,添加成功;NO,添加失败.
- */
-// !!!:批量操作,是否添加回滚支持?
-- (BOOL) insert: (NSString *) table
-          batch: (NSArray *) batch;
+
 // !!!:暂无法实现.
 /*
 - (void) set;
@@ -242,27 +266,17 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!<
  *  更新数据.
  *
  *  @param table 表名.
- *  @param data  字典,存储要插入的数据.以字段名为key,以要设置的值为value.
- *  @param where 只含有一个键值对的字典,以列名为键,以筛选条件为值.
- *
- *  @return YES,成功;NO,失败.
- */
-- (BOOL) update:(NSString *) table
-           data: (NSDictionary *) data
-          where: (NSDictionary *) where;
-
-/**
- *  批量更新数据.
- *
- *  @param table 表名.
- *  @param batch 数组,存放要插入的数据的字典,字典以字段名为key,以要设置的值
- *  @param where 只含有一个键值对的字典,以列名为键,以筛选条件为值.
+ *  @param data  字典或者存储字典对象的数组.字典以字段名为key,以要设置的值为value.
+ *               传入数组,将执行批量操作.任一操作失败,则所有操作都将会被取消并会将数
+ *               据库恢复到第一个操作执行前的状态.
+ *  @param where 字典或者存储字典对象的数组.字典,仅含有一个键值对,以列名为键,以筛选条
+ *               件为值.需要与data中的数据对应.
  *
  *  @return YES,成功;NO,失败.
  */
 - (BOOL) update: (NSString *) table
-          batch: (NSArray *) batch
-          where: (NSDictionary *) where;
+           data: (id) data
+          where: (id) where;
 
 /**
  *  删除数据.
@@ -272,7 +286,7 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!<
  *
  *  @return YES,成功;NO,失败.
  */
-- (BOOL) remove: (id) tables
+- (BOOL) remove: (id) table
           where: (NSDictionary *) where;
 
 /**
@@ -283,11 +297,6 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where); //!<
  *  @return YES,成功;NO,失败.
  */
 - (BOOL) empty: (NSString *)table;
-
-// !!!:sqlite 不符合truncate命令!
-/*
-- (BOOL) truncate: (NSString *) table;
-*/
 
 // !!!:以下方法,暂时无法实现.(能力不够!)
 /*

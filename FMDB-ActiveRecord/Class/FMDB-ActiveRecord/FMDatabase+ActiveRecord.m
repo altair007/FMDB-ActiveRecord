@@ -35,7 +35,6 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
                      limit: (NSUInteger) limit
                     offset: (NSUInteger) offset
 {
-    // !!!:每个方法都是这两句,可以进一步封装!
     NSString * sql = [NSString stringWithFormat:@"SELECT * FROM %@ LIMIT %lu, %lu", table, offset, limit];
     return [self executeQuery: sql];
 }
@@ -132,74 +131,91 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
     return [self selectSum: field alias: field from: table];
 }
 
-
+// !!!:插入,更新,删除,似乎也只是block不一样而已,进一步封装?
 - (BOOL) insert: (NSString *) table
-           data: (NSDictionary *) data
+           data: (id) data
 {
-    NSMutableString * fields = [NSMutableString stringWithCapacity: 42];
-    NSMutableString * values = [NSMutableString stringWithCapacity: 42];
+    InsertSingleBlock insertBlock = ^(NSString * table, NSDictionary * data){
+        NSMutableString * fields = [NSMutableString stringWithCapacity: 42];
+        NSMutableString * values = [NSMutableString stringWithCapacity: 42];
+        
+        [data enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            // !!!:此处给所有的字段添加``修饰,给所有的值添加''修饰,是否推广?
+            [fields appendString:[NSString stringWithFormat:@"`%@`,", key]];
+            [values appendString: [NSString stringWithFormat: @"'%@',", obj]];
+        }];
+        
+        [fields deleteCharactersInRange:NSMakeRange(fields.length - 1, 1)];
+        [values deleteCharactersInRange:NSMakeRange(values.length - 1, 1)];
+        
+        NSString * sql = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES (%@)", table, fields, values];
+        return [self executeUpdate: sql];
+    };
     
-    [data enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        // !!!:此处给所有的字段添加``修饰,给所有的值添加''修饰,是否推广?
-        [fields appendString:[NSString stringWithFormat:@"`%@`,", key]];
-        [values appendString: [NSString stringWithFormat: @"'%@',", obj]];
-    }];
+    if ([data isKindOfClass: [NSDictionary class]]) {
+        return insertBlock(table, data);
+    }
     
-    [fields deleteCharactersInRange:NSMakeRange(fields.length - 1, 1)];
-    [values deleteCharactersInRange:NSMakeRange(values.length - 1, 1)];
+    if (NO == [data isKindOfClass: [NSArray class]]) {// ???:当传入的数据类型不对,在返回NO的同时,有无必要设置lastErrorMessage.?
+        return NO;
+    }
     
-    NSString * sql = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES (%@)", table, fields, values];
-    return [self executeUpdate: sql];
-}
-
-- (BOOL) insert: (NSString *) table
-          batch: (NSArray *) batch
-{
     __block BOOL success = YES;
-    
-    [batch enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL *stop) {
-        if (NO == [self insert: table data: obj]) {
+    [(NSArray *)data enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        if (NO == insertBlock(table, obj)) {
             success = NO;
             * stop = YES;
         }
     }];
-    
-     return success;
-}
-
-- (BOOL) update:(NSString *) table
-           data: (NSDictionary *) data
-          where: (NSDictionary *) where
-{
-    // !!!:应该把这些生成子句的方法,封装成方法.
-    NSMutableString * setClause = [NSMutableString stringWithCapacity: 42];
-    [data enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        [setClause appendString:[NSMutableString stringWithFormat:@"`%@` = '%@',", key, obj]];
-    }];
-    [setClause deleteCharactersInRange:NSMakeRange(setClause.length - 1, 1)];
-
-    NSMutableString * whereClause = [NSMutableString stringWithCapacity: 42];
-    [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
-        [whereClause appendString: [NSString stringWithFormat:@"`%@` = \'%@\'", key, obj]];
-        * stop = YES;
-    }];
-    
-    NSString * sql = [NSString stringWithFormat:@"UPDATE %@ SET %@ WHERE %@", table, setClause, whereClause];
-    return [self executeUpdate: sql];
+    return success;
 }
 
 - (BOOL) update: (NSString *) table
-          batch: (NSArray *) batch
-          where: (NSDictionary *) where
+           data: (id) data
+          where: (id) where
 {
-    BOOL success = YES;
-    [batch enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL *stop) {
-        [self update: table data: obj where: where];
+    if(NO == [data isKindOfClass:[where class]]){
+        return NO;
+    }
+    
+    UpdateSingleBlock updateBlock = ^(NSString * table, NSDictionary * data, NSDictionary * where){
+        // !!!:应该把这些生成子句的方法,封装成方法.
+        NSMutableString * setClause = [NSMutableString stringWithCapacity: 42];
+        [data enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            [setClause appendString:[NSMutableString stringWithFormat:@"`%@` = '%@',", key, obj]];
+        }];
+        [setClause deleteCharactersInRange:NSMakeRange(setClause.length - 1, 1)];
+        
+        NSMutableString * whereClause = [NSMutableString stringWithCapacity: 42];
+        [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
+            [whereClause appendString: [NSString stringWithFormat:@"`%@` = \'%@\'", key, obj]];
+            * stop = YES;
+        }];
+        
+        NSString * sql = [NSString stringWithFormat:@"UPDATE %@ SET %@ WHERE %@", table, setClause, whereClause];
+        return [self executeUpdate: sql];
+    };
+    
+    if ([data isKindOfClass: [NSDictionary class]]) {
+        return updateBlock(table, data, where);
+    }
+    
+    if (NO == [data isKindOfClass: [NSArray class]]) {// ???:当传入的数据类型不对,在返回NO的同时,有无必要设置lastErrorMessage.?
+        return NO;
+    }
+    
+    __block BOOL success = YES;
+    [(NSArray *)data enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        if (NO == updateBlock(table, obj, [(NSArray *)where objectAtIndex: idx])) {
+            success = NO;
+            * stop = YES;
+        }
     }];
     return success;
 }
 
-- (BOOL) remove: (id) tables
+
+- (BOOL) remove: (id) table
           where: (NSDictionary *) where
 {
     RemoveSingleBlock removeBlock  = ^(NSString * table, NSDictionary * where){
@@ -213,16 +229,16 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
         return [self executeUpdate: sql];
     };
     
-    if ([tables isKindOfClass: [NSString class]]) {
-        return removeBlock(tables, where);
+    if ([table isKindOfClass: [NSString class]]) {
+        return removeBlock(table, where);
     }
     
-    if (NO == [tables isKindOfClass:[NSArray class]]) {
+    if (NO == [table isKindOfClass:[NSArray class]]) {
         return NO;
     }
     
     __block BOOL success = YES;
-    [(NSArray *)tables enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    [(NSArray *)table enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         if (NO == removeBlock(obj, where)) {
             success = NO;
             * stop = YES;
@@ -237,9 +253,6 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
     NSString * sql = [NSString stringWithFormat: @"DELETE FROM %@", table];
     return [self executeUpdate: sql];
 }
-
-
-
 
 #pragma mark - 工具方法.
 
