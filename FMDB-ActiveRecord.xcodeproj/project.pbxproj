@@ -28,6 +28,7 @@
 		C2C8FC3C1954806100FDFDC7 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC311954806100FDFDC7 /* LICENSE.txt */; };
 		C2C8FC3D1954806100FDFDC7 /* README.markdown in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC321954806100FDFDC7 /* README.markdown */; };
 		C2C8FC3F195480FB00FDFDC7 /* libsqlite3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FC3E195480FB00FDFDC7 /* libsqlite3.0.dylib */; };
+		C2E5F1E819550B60006520C8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C2E5F1E719550B60006520C8 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,6 +74,7 @@
 		C2C8FC311954806100FDFDC7 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		C2C8FC321954806100FDFDC7 /* README.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.markdown; sourceTree = "<group>"; };
 		C2C8FC3E195480FB00FDFDC7 /* libsqlite3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.0.dylib; path = usr/lib/libsqlite3.0.dylib; sourceTree = SDKROOT; };
+		C2E5F1E719550B60006520C8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +147,7 @@
 		C2C8FBF319547FCA00FDFDC7 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				C2E5F1E719550B60006520C8 /* README.md */,
 				C2C8FBF419547FCA00FDFDC7 /* FMDB-ActiveRecord-Info.plist */,
 				C2C8FBF519547FCA00FDFDC7 /* InfoPlist.strings */,
 				C2C8FBF819547FCA00FDFDC7 /* main.m */,
@@ -336,6 +339,7 @@
 			files = (
 				C2C8FC3C1954806100FDFDC7 /* LICENSE.txt in Resources */,
 				C2C8FBF719547FCA00FDFDC7 /* InfoPlist.strings in Resources */,
+				C2E5F1E819550B60006520C8 /* README.md in Resources */,
 				C2C8FC3D1954806100FDFDC7 /* README.markdown in Resources */,
 				C2C8FBFF19547FCA00FDFDC7 /* Images.xcassets in Resources */,
 			);
