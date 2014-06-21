@@ -45,6 +45,7 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where);
 //!!!:项目目标: 1.与原有FMDB代码,兼容! 2.简洁. 3.优雅.
 // !!!:可能必须使用延展,才能实现既定需求!
 // !!!:基本迭代规划:1.实现 2.优化
+// !!!: 先用继承机制实现.
 
 /*可能的优化方向:
  1.增加安全性检查(FMDB自带吗?).
@@ -253,7 +254,7 @@ typedef BOOL (^RemoveSingleBlock) (NSString * talbe, NSDictionary * where);
  *  @return YES,操作成功;NO,操作失败.
  */
 // !!!:CI提供了自动转义功能,处于安全考虑,机制是什么!`加个前缀吗?
-// !!!: 批量操作,有无不要提供回滚功能!
+// !!!: 批量操作,有无必要提供回滚功能!
 - (BOOL) insert: (NSString *) table
            data: (id) data;
 

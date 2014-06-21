@@ -24,10 +24,10 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
 
 @implementation FMDatabase (ActiveRecord)
 #pragma mark - 核心方法.
+// !!!:以get开头,不合适!不符合oc规范!
 - (FMResultSet *) getTable: (NSString *) table
 {
-    // ???:此方法有无必要建立在getTable: limit: offset:之上.
-    NSString * sql = [NSString stringWithFormat: @"SELECT * FROM %@", table];
+    NSString * sql = [NSString stringWithFormat: @"SELECT * FROM '%@'", table];
     return [self executeQuery: sql];
 }
 
@@ -35,13 +35,14 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
                      limit: (NSUInteger) limit
                     offset: (NSUInteger) offset
 {
-    NSString * sql = [NSString stringWithFormat:@"SELECT * FROM %@ LIMIT %lu, %lu", table, offset, limit];
+    NSString * sql = [NSString stringWithFormat:@"SELECT * FROM '%@' LIMIT '%lu', '%lu'", table, offset, limit];
     return [self executeQuery: sql];
 }
 
 - (FMResultSet *) getTable: (NSString *) table
                      where: (NSDictionary *) where
 {
+    // !!!:应该把各个子句分离.
     NSMutableString * whereClause = [NSMutableString stringWithCapacity: 42];
     [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
         [whereClause appendString: [NSString stringWithFormat:@"`%@` = \'%@\'", key, obj]];
@@ -131,7 +132,6 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
     return [self selectSum: field alias: field from: table];
 }
 
-// !!!:插入,更新,删除,似乎也只是block不一样而已,进一步封装?
 - (BOOL) insert: (NSString *) table
            data: (id) data
 {
@@ -156,7 +156,7 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
         return insertBlock(table, data);
     }
     
-    if (NO == [data isKindOfClass: [NSArray class]]) {// ???:当传入的数据类型不对,在返回NO的同时,有无必要设置lastErrorMessage.?
+    if (NO == [data isKindOfClass: [NSArray class]]) {
         return NO;
     }
     
@@ -200,7 +200,7 @@ objc_setAssociatedObject(self, (__bridge const void *)RI_BUTTON_ASS_KEY, buttonI
         return updateBlock(table, data, where);
     }
     
-    if (NO == [data isKindOfClass: [NSArray class]]) {// ???:当传入的数据类型不对,在返回NO的同时,有无必要设置lastErrorMessage.?
+    if (NO == [data isKindOfClass: [NSArray class]]) {
         return NO;
     }
     

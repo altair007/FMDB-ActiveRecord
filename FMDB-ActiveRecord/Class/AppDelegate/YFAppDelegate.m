@@ -25,17 +25,16 @@
     self.window.backgroundColor = [UIColor blueColor];
     
     // !!!:最终应提供一个可视化的demo.
-    // !!!:应该提供对自定义表前缀的支持吗?
     /* 测试数据库 */
     FMDatabase * db = [FMDatabase databaseWithPath: @"/tmp/tmp.db"];
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
     
-//    NSMutableString * resultStr =  [NSMutableString stringWithString:@"姓名\t性别\t年龄\n"];
-//    FMResultSet * result = nil;
+    NSMutableString * resultStr =  [NSMutableString stringWithString:@"姓名\t性别\t年龄\n"];
+    FMResultSet * result = nil;
     // 测试 getTalbe: limit: offset方法.
-//    result = [db getTable: @"persons" limit: 10 offset:0];
+    result = [db getTable: @"persons" limit: 10 offset:0];
     
     // 测试getTable:方法.
 //    result = [db getTable: @"persons"];
@@ -120,10 +119,10 @@
 //    [db remove:@[@"persons", @"TTAnimals"] where:@{@"pkName":@"s"}];
     
     
-//    while ([result next]) {
-//        [resultStr appendString:[NSString stringWithFormat:@"%@\t%d\t%lu\n", [result stringForColumn: @"pkName"], [result boolForColumn: @"intSex"], [result longForColumn: @"intAge"]]];
-//    }
-//    [self showAlertViewWithMessage: resultStr];
+    while ([result next]) {
+        [resultStr appendString:[NSString stringWithFormat:@"%@\n", [result stringForColumn: @"pkName"]]];
+    }
+    [self showAlertViewWithMessage: resultStr];
     
 //    [db empty: @"TTAnimals"];
 //    [db truncate: @"TTAnimals"];
@@ -131,7 +130,7 @@
 //    [db insert: @"Person" data:@[@{@"pkName": @"周杰伦"}, @{@"pkName": @"邓紫棋"}]];
     
     
-    [db update: @"Person" data:@[@{@"pkName": @"大爱颜风2"}, @{@"pkName": @"大爱杰伦"}] where:@[@{@"pkName": @"大爱颜风"}, @{@"pkName": @"周杰伦"}]];
+//    [db update: @"Person" data:@[@{@"pkName": @"大爱颜风2"}, @{@"pkName": @"大爱杰伦"}] where:@[@{@"pkName": @"大爱颜风"}, @{@"pkName": @"周杰伦"}]];
     
     [db close];
     [self.window makeKeyAndVisible];
