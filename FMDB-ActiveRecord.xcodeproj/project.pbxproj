@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C2271C1A1955CB0600779D64 /* YFDataBase.m in Sources */ = {isa = PBXBuildFile; fileRef = C2271C191955CB0600779D64 /* YFDataBase.m */; };
 		C2C8FBED19547FCA00FDFDC7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */; };
 		C2C8FBEF19547FCA00FDFDC7 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEE19547FCA00FDFDC7 /* CoreGraphics.framework */; };
 		C2C8FBF119547FCA00FDFDC7 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBF019547FCA00FDFDC7 /* UIKit.framework */; };
@@ -19,7 +20,6 @@
 		C2C8FC1019547FCA00FDFDC7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC0E19547FCA00FDFDC7 /* InfoPlist.strings */; };
 		C2C8FC1219547FCA00FDFDC7 /* FMDB_ActiveRecordTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC1119547FCA00FDFDC7 /* FMDB_ActiveRecordTests.m */; };
 		C2C8FC351954806100FDFDC7 /* YFAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC1E1954806100FDFDC7 /* YFAppDelegate.m */; };
-		C2C8FC361954806100FDFDC7 /* FMDatabase+ActiveRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC211954806100FDFDC7 /* FMDatabase+ActiveRecord.m */; };
 		C2C8FC371954806100FDFDC7 /* FMDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC271954806100FDFDC7 /* FMDatabase.m */; };
 		C2C8FC381954806100FDFDC7 /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC291954806100FDFDC7 /* FMDatabaseAdditions.m */; };
 		C2C8FC391954806100FDFDC7 /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C8FC2B1954806100FDFDC7 /* FMDatabasePool.m */; };
@@ -42,6 +42,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C2271C181955CB0600779D64 /* YFDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFDataBase.h; sourceTree = "<group>"; };
+		C2271C191955CB0600779D64 /* YFDataBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFDataBase.m; sourceTree = "<group>"; };
 		C2C8FBE919547FCA00FDFDC7 /* FMDB-ActiveRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FMDB-ActiveRecord.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		C2C8FBEE19547FCA00FDFDC7 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -58,8 +60,6 @@
 		C2C8FC1119547FCA00FDFDC7 /* FMDB_ActiveRecordTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FMDB_ActiveRecordTests.m; sourceTree = "<group>"; };
 		C2C8FC1D1954806100FDFDC7 /* YFAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFAppDelegate.h; sourceTree = "<group>"; };
 		C2C8FC1E1954806100FDFDC7 /* YFAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFAppDelegate.m; sourceTree = "<group>"; };
-		C2C8FC201954806100FDFDC7 /* FMDatabase+ActiveRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FMDatabase+ActiveRecord.h"; sourceTree = "<group>"; };
-		C2C8FC211954806100FDFDC7 /* FMDatabase+ActiveRecord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "FMDatabase+ActiveRecord.m"; sourceTree = "<group>"; };
 		C2C8FC261954806100FDFDC7 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
 		C2C8FC271954806100FDFDC7 /* FMDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabase.m; sourceTree = "<group>"; };
 		C2C8FC281954806100FDFDC7 /* FMDatabaseAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseAdditions.h; sourceTree = "<group>"; };
@@ -199,8 +199,8 @@
 		C2C8FC1F1954806100FDFDC7 /* FMDB-ActiveRecord */ = {
 			isa = PBXGroup;
 			children = (
-				C2C8FC201954806100FDFDC7 /* FMDatabase+ActiveRecord.h */,
-				C2C8FC211954806100FDFDC7 /* FMDatabase+ActiveRecord.m */,
+				C2271C181955CB0600779D64 /* YFDataBase.h */,
+				C2271C191955CB0600779D64 /* YFDataBase.m */,
 			);
 			path = "FMDB-ActiveRecord";
 			sourceTree = "<group>";
@@ -360,11 +360,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C2C8FC361954806100FDFDC7 /* FMDatabase+ActiveRecord.m in Sources */,
 				C2C8FC391954806100FDFDC7 /* FMDatabasePool.m in Sources */,
 				C2C8FBF919547FCA00FDFDC7 /* main.m in Sources */,
 				C2C8FC3A1954806100FDFDC7 /* FMDatabaseQueue.m in Sources */,
 				C2C8FC351954806100FDFDC7 /* YFAppDelegate.m in Sources */,
+				C2271C1A1955CB0600779D64 /* YFDataBase.m in Sources */,
 				C2C8FC371954806100FDFDC7 /* FMDatabase.m in Sources */,
 				C2C8FC3B1954806100FDFDC7 /* FMResultSet.m in Sources */,
 				C2C8FC381954806100FDFDC7 /* FMDatabaseAdditions.m in Sources */,
