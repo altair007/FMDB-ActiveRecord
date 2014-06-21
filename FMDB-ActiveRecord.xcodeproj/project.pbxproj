@@ -28,7 +28,6 @@
 		C2C8FC3C1954806100FDFDC7 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC311954806100FDFDC7 /* LICENSE.txt */; };
 		C2C8FC3D1954806100FDFDC7 /* README.markdown in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC321954806100FDFDC7 /* README.markdown */; };
 		C2C8FC3F195480FB00FDFDC7 /* libsqlite3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FC3E195480FB00FDFDC7 /* libsqlite3.0.dylib */; };
-		C2C8FC411954853C00FDFDC7 /* README.MD in Resources */ = {isa = PBXBuildFile; fileRef = C2C8FC401954853B00FDFDC7 /* README.MD */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +73,6 @@
 		C2C8FC311954806100FDFDC7 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		C2C8FC321954806100FDFDC7 /* README.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.markdown; sourceTree = "<group>"; };
 		C2C8FC3E195480FB00FDFDC7 /* libsqlite3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.0.dylib; path = usr/lib/libsqlite3.0.dylib; sourceTree = SDKROOT; };
-		C2C8FC401954853B00FDFDC7 /* README.MD */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.MD; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,7 +138,6 @@
 				C2C8FC341954806100FDFDC7 /* Resources */,
 				C2C8FBFE19547FCA00FDFDC7 /* Images.xcassets */,
 				C2C8FBF319547FCA00FDFDC7 /* Supporting Files */,
-				C2C8FC401954853B00FDFDC7 /* README.MD */,
 			);
 			path = "FMDB-ActiveRecord";
 			sourceTree = "<group>";
@@ -341,7 +338,6 @@
 				C2C8FBF719547FCA00FDFDC7 /* InfoPlist.strings in Resources */,
 				C2C8FC3D1954806100FDFDC7 /* README.markdown in Resources */,
 				C2C8FBFF19547FCA00FDFDC7 /* Images.xcassets in Resources */,
-				C2C8FC411954853C00FDFDC7 /* README.MD in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,6 +564,7 @@
 				C2C8FC1719547FCA00FDFDC7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		C2C8FC1819547FCA00FDFDC7 /* Build configuration list for PBXNativeTarget "FMDB-ActiveRecordTests" */ = {
 			isa = XCConfigurationList;
@@ -576,6 +573,7 @@
 				C2C8FC1A19547FCA00FDFDC7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
