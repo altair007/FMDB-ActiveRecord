@@ -7,6 +7,8 @@
 //
 
 #import "YFAppDelegate.h"
+#import "FMDB.h"
+#import "FMDatabase+ActiveRecord.h"
 
 @implementation YFAppDelegate
 -(void)dealloc
@@ -21,8 +23,109 @@
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor blueColor];
+    
+    // !!!:最终应提供一个可视化的demo.
+    // !!!:应该提供对自定义表前缀的支持吗?
+    /* 测试数据库 */
+    FMDatabase * db = [FMDatabase databaseWithPath: @"/tmp/tmp.db"];
+    if (NO == [db open]) {
+        [self showAlertViewWithMessage: db.lastErrorMessage];
+    }
+    
+    NSMutableString * resultStr =  [NSMutableString stringWithString:@"姓名\t性别\t年龄\n"];
+    FMResultSet * result = nil;
+    // 测试 getTalbe: limit: offset方法.
+//    result = [db getTable: @"persons" limit: 10 offset:0];
+    
+    // 测试getTable:方法.
+//    result = [db getTable: @"persons"];
+    
+    //  测试getTable:where:limit:offset:方法.
+//    result = [db getTable:@"persons" where:@{@"intSex": [NSNumber numberWithBool:NO]} limit:1 offset:0];
+    
+    // 测试getTable:where:
+//    result = [db getTable:@"persons" where: @{@"intSex": [NSNumber numberWithBool: NO]}];
+    
+    // 测试 select:from:
+//    result = [db select:@"*" from:@"persons"];
+//    
+//    result = [db selectMax:@"intAge" alias:@"age" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %lu", [result  longForColumn: @"age"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+//    
+//    
+//    result = [db selectMax: @"intAge" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %lu", [result  longForColumn: @"intAge"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+
+    
+//    result = [db selectMin:@"intAge" alias:@"age" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %lu", [result  longForColumn: @"age"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+//    
+//    
+//    result = [db selectMin: @"intAge" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %lu", [result  longForColumn: @"intAge"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+    
+    
+//    result = [db selectAvg:@"intAge" alias:@"age" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"age"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+//    
+//    
+//    result = [db selectAvg: @"intAge" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"intAge"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+//    result = [db selectSum:@"intAge" alias:@"age" from: @"persons"];
+//    NSString *temp = nil;
+//    while ([result next]) {
+//        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"age"]];
+//    }
+//    [self showAlertViewWithMessage: temp];
+    
+    
+    result = [db selectSum: @"intAge" from: @"persons"];
+    NSString *temp = nil;
+    while ([result next]) {
+        temp = [NSString stringWithFormat:@"年龄: %g", [result  doubleForColumn: @"intAge"]];
+    }
+    [self showAlertViewWithMessage: temp];
+    
+
+//    while ([result next]) {
+//        [resultStr appendString:[NSString stringWithFormat:@"%@\t%d\t%lu\n", [result stringForColumn: @"pkName"], [result boolForColumn: @"intSex"], [result longForColumn: @"intAge"]]];
+//    }
+//    [self showAlertViewWithMessage: resultStr];
+//    
+    [db close];
     [self.window makeKeyAndVisible];
     return YES;
+}
+
+- (void) showAlertViewWithMessage: (NSString *) message
+{
+    UIAlertView * alertView = [[UIAlertView alloc] initWithTitle:@"数据库测试:" message: message delegate:nil cancelButtonTitle:@"确定" otherButtonTitles: nil];
+    [alertView show];
+    [alertView release];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

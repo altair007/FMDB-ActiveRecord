@@ -12,4 +12,11 @@
 
 @property (retain, nonatomic) UIWindow *window;
 
+/**
+ *  显示一个含有特定消息的弹出视图.
+ *
+ *  @param message 信息.
+ */
+- (void) showAlertViewWithMessage: (NSString *) message;
+
 @end
