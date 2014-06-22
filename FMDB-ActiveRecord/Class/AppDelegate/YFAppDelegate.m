@@ -30,8 +30,7 @@
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
 //    [db select:@"pkName, txtLove" escape: YES];
-    
-    NSString * str =  [db YFDBCreateAliasFromTable: @"www.baidu.com"];
+//    NSString * str = [db YFDBEscapeIdentifiers: @"数据库.表.王列王.颜风"];
     
     [db close];
     [self.window makeKeyAndVisible];
