@@ -6,7 +6,6 @@
 //  Copyright (c) 2014年 Shadow. All rights reserved.
 //
 
-// !!!:代码中如此频繁地使用便利构造器,真的好吗?
 #import "YFDataBase.h"
 
 @interface YFDataBase ()
@@ -46,10 +45,6 @@
 @property (retain, nonatomic) NSMutableArray * arNoEscape;
 @property (retain, nonatomic) NSMutableArray * arCacheNoEscape;
 
-// !!!:我不确定它写在这里是否合适,是手动配置,还是自动初始化.暂时采取后一种策略!
-@property (copy, nonatomic) NSString * escapeChar;
-@property (retain, nonatomic) NSMutableArray * reservedIdentifiers;
-
 #pragma mark - 私有方法.
 /**
  *  为下面四个公开方法服务.
@@ -77,23 +72,6 @@
  *  @return 此项对应的别名.
  */
 - (NSString *) YFDBCreateAliasFromTable: (NSString *) item;
-
-//!!!:暂先不写注释.有些棘手!
-- (id) YFDBProtectIdentifiers: (id)   item
-                 prefixSingle: (BOOL) perfixSingle
-           protectIdentifiers: (BOOL) protectIdentifiers
-                  fieldExists: (BOOL) fieldExists;
-
-/**
- *  转义SQL标识符.
- *
- *  这个方法转义列名和表名.
- *
- *  @param item 要转义的内容.
- *
- *  @return 转义后的内容.
- */
-- (NSString *) YFDBEscapeIdentifiers: (NSString *) item;
 
 @end
 
@@ -138,10 +116,6 @@
         
         self.arNoEscape = [NSMutableArray arrayWithCapacity: 42];
         self.arCacheNoEscape = [NSMutableArray arrayWithCapacity: 42];
-
-        self.escapeChar = @"";
-        
-        self.reservedIdentifiers = [NSMutableArray arrayWithCapacity: 42];
     }
     
     return self;
@@ -175,10 +149,6 @@
     
     self.arNoEscape = nil;
     self.arCacheNoEscape = nil;
-    
-    self.escapeChar = nil;
-    
-    self.reservedIdentifiers = nil;
     
     [super dealloc];
 }
@@ -274,100 +244,4 @@
     return item;
 }
 
-- (id) YFDBProtectIdentifiers: (id)   item
-                         prefixSingle: (BOOL) perfixSingle
-                   protectIdentifiers: (BOOL)   protectIdentifiers
-                          fieldExists: (BOOL) fieldExists
-{
-    if (YES == [item isKindOfClass: [NSDictionary class]]) { // ???:我不确定,这个逻辑有什么用!
-        // !!!: 猜想,此处其实可能是在遍历数组.item应该是数组!
-        // !!!:怎么可能会传个字典进来,真的有用吗?要干什么??
-        NSMutableDictionary * escapedDict = [NSMutableDictionary dictionaryWithCapacity: 42];
-        
-        [(NSDictionary *)item enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-            NSString * escapeKey = [self YFDBProtectIdentifiers: key prefixSingle: NO protectIdentifiers: NO fieldExists: YES];
-            NSString * escapeValue = [self YFDBProtectIdentifiers: obj prefixSingle: NO protectIdentifiers: NO fieldExists: YES];
-            
-            [escapedDict setObject: escapeKey forKey: escapeValue];
-        }];
-        
-        return escapedDict;
-    }
-    
-    // !!!:标记位置1
-    
-    // 把制表符或多个空格转换成单一的空格.
-    NSRegularExpression * regex = [NSRegularExpression regularExpressionWithPattern:@"[\t ]+" options: 0  error:nil];
-    item = [regex stringByReplacingMatchesInString:item options:0 range:NSMakeRange(0, [item length]) withTemplate:@" "];
-    
-    // 如果此项有一个别名,我们暂时先把别名移到一个单独的变量中保存.
-    // 通常,我们移除第一个空格后面的所有内容.
-    NSString * alias = @"";
-    NSRange rangeOfAlias = [item rangeOfString:@" "];
-    if (NSNotFound != rangeOfAlias.location) {
-        alias = [item substringFromIndex: rangeOfAlias.location];
-        item = [item substringToIndex: rangeOfAlias.location];
-    }
-    
-    // 当涉及到使用MAX,MIN等进行的查询时,我们不需要进行转义或者增加前缀.
-    if (NSNotFound != [item rangeOfString: @"("].location) { // !!!:我觉得这个逻辑放到标记位置1,更合理些.
-        return [NSString stringWithFormat: @"%@%@", item, alias];
-    }
-    
-    // !!!:不确定如何翻译是好!
-    // Break the string apart if it contains periods, then insert the table prefix
-    // in the correct location, assuming the period doesn't indicate that we're dealing
-    // with an alias. While we're at it, we will escape the components
-    if (NSNotFound != [item rangeOfString: @"."].location) {
-        NSArray * parts = [item componentsSeparatedByString: @"."];
-        // Does the first segment of the exploded item match
-        // one of the aliases previously identified?  If so,
-        // we have nothing more to do other than escape the item
-        if ([self.arAliasedTables containsObject: parts[0]]) {
-            if (YES == protectIdentifiers) { //!!!:暂时中止.
-                [parts enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-//!!!:暂时跳出.                    obj = [self YMDBEscapeIdentifiers: ];
-                }];
-            }
-        }
-    }
-    
-    
-    
-    // !!!:临时返回值.
-    return nil;
-}
-
-// !!!:转义之后,是否真的能躲避注入攻击?
-// !!!:Active Record模式是否天生可以躲避注入攻击?
-- (NSString *) YFDBEscapeIdentifiers: (NSString *) item
-{
-    NSString * result = nil;
-    
-    if ([self.escapeChar isEqualToString: @""]) {
-        return item;
-    }
-    
-    for (NSString * identifier in self.reservedIdentifiers) {
-        if (NSNotFound != [item rangeOfString: [NSString stringWithFormat: @".%@", identifier]].location) {
-            result = [NSString stringWithFormat: @"%@%@", self.escapeChar, [item stringByReplacingOccurrencesOfString: @"." withString:[NSString stringWithFormat: @"%@.", self.escapeChar]]];
-            
-            // 在此处移除多余的转义字符.多余转义字符产生的原因是,用户可能已经自己做了转义操作.
-            NSRegularExpression * regex = [NSRegularExpression regularExpressionWithPattern: [NSString stringWithFormat: @"[%@]+", self.escapeChar] options: 0  error:nil];
-            result = [regex stringByReplacingMatchesInString: result options:0 range:NSMakeRange(0, [result length]) withTemplate:[NSString stringWithFormat: @"%@", self.escapeChar]];
-            return result;
-        }
-    }
-    
-    if (NSNotFound != [item rangeOfString: @"."].location) {
-        result = [NSString stringWithFormat: @"%@%@%@", self.escapeChar, [item stringByReplacingOccurrencesOfString: @"." withString:[NSString stringWithFormat: @"%@.%@", self.escapeChar,self.escapeChar]], self.escapeChar];
-    }else{
-        result = [NSString stringWithFormat: @"%@%@%@", self.escapeChar, item, self.escapeChar];
-    }
-    
-    // 在此处移除多余的转义字符.多余转义字符产生的原因是,用户可能已经自己做了转义操作.
-    NSRegularExpression * regex = [NSRegularExpression regularExpressionWithPattern: [NSString stringWithFormat: @"[%@]+", self.escapeChar] options: 0  error:nil];
-    result = [regex stringByReplacingMatchesInString: result options:0 range:NSMakeRange(0, [result length]) withTemplate:[NSString stringWithFormat: @"%@", self.escapeChar]];
-    return result;
-}
 @end
