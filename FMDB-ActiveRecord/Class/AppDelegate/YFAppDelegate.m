@@ -31,7 +31,11 @@
     }
 //    [db select:@"pkName, txtLove" escape: YES];
 //    NSString * str = [db YFDBEscapeIdentifiers: @"数据库.表.王列王.颜风"];
-    
+//    [db selectAvg: @"pkName" alias: @""];
+//    [db selectSum: @"pkName" alias: @""];
+//    [db selectMax: @"pkName" alias: @""];
+//    [db selectMin: @"pkName" alias: @""];
+    [[db selectMin: @"pkName"] distinct:YES];
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

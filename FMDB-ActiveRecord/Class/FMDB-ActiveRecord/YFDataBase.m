@@ -42,9 +42,6 @@
 @property (retain, nonatomic) NSMutableArray * arCacheOrderby;
 @property (retain, nonatomic) NSMutableArray * arCacheSet;
 
-@property (retain, nonatomic) NSMutableArray * arNoEscape;
-@property (retain, nonatomic) NSMutableArray * arCacheNoEscape;
-
 #pragma mark - 私有方法.
 /**
  *  为下面四个公开方法服务.
@@ -54,13 +51,13 @@
  *  selectAvg:alias:
  *  selectSum:alias:
  *
- *  @param select 字段.
+ *  @param field  字段.
  *  @param alias  别名.
  *  @param type   类型.
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) select
+- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
                              type: (NSString *) type;
 
@@ -72,6 +69,18 @@
  *  @return 此项对应的别名.
  */
 - (NSString *) YFDBCreateAliasFromTable: (NSString *) item;
+
+/**
+ *  用于追踪使用了表别名的SQL语句.
+ *
+ *  @param table 要观察的表.
+ *
+ *  @return <#return value description#>
+ */
+// !!!:迭代到此  		// Extract any aliases that might exist.  We use this information
+// in the _protect_identifiers to know whether to add a table prefix
+// !!!:或许,此方法没有必要实现!
+- (NSString *) YFDBTrackAliases: (NSString *) table;
 
 @end
 
@@ -113,9 +122,6 @@
         self.arCacheHaving = [NSMutableArray arrayWithCapacity: 42];
         self.arCacheOrderby = [NSMutableArray arrayWithCapacity: 42];
         self.arCacheSet = [NSMutableArray arrayWithCapacity: 42];
-        
-        self.arNoEscape = [NSMutableArray arrayWithCapacity: 42];
-        self.arCacheNoEscape = [NSMutableArray arrayWithCapacity: 42];
     }
     
     return self;
@@ -147,34 +153,28 @@
     self.arCacheOrderby = nil;
     self.arCacheSet = nil;
     
-    self.arNoEscape = nil;
-    self.arCacheNoEscape = nil;
-    
     [super dealloc];
 }
 
-- (YFDataBase *)select: (id)    select
-                escape: (BOOL)  escape
+- (YFDataBase *)select: (id) field
 {
-    if (nil == select) {
-        select = @"*";
+    if (nil == field) {
+        field = @"*";
     }
     
-    if ([select isKindOfClass: [NSString class]]) {
-        select = [(NSString *)select componentsSeparatedByString:@","];
+    if ([field isKindOfClass: [NSString class]]) {
+        field = [(NSString *)select componentsSeparatedByString:@","];
     }
     
-    [select enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
+    [field enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
         val = [val stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
 
         if (NO == [val isEqualToString: @""]) {
             [self.arSelect      addObject: val];
-            [self.arNoEscape    addObject: [NSNumber numberWithBool: escape]];
             
             if (YES == self.arCaching) {
                 [self.arCacheSelect     addObject: val];
-                [self.arCacheExists     addObject: @"select"];
-                [self.arCacheNoEscape   addObject: [NSNumber numberWithBool: escape]];
+                [self.arCacheExists     addObject: @"select"];//!!!: 为什么不用大写?
             }
         }
         
@@ -183,36 +183,63 @@
     return self;
 }
 
-- (YFDataBase *) selectMax: (NSString *) select
+- (YFDataBase *) selectMax: (NSString *) field
                      alias: (NSString *) alias
 {
-    return [self YFDBMaxMinAvgSum: select alias: alias type: @"MAX"];
+    return [self YFDBMaxMinAvgSum: field alias: alias type: @"MAX"];
 }
 
-- (YFDataBase *) selectMin: (NSString *) select
+- (YFDataBase *) selectMin: (NSString *) field
                      alias: (NSString *) alias
 {
-    return [self YFDBMaxMinAvgSum: select alias: alias type: @"MIN"];
+    return [self YFDBMaxMinAvgSum: field alias: alias type: @"MIN"];
 }
 
-- (YFDataBase *) selectAvg: (NSString *) select
+- (YFDataBase *) selectAvg: (NSString *) field
                      alias: (NSString *) alias
 {
-    return [self YFDBMaxMinAvgSum: select alias: alias type: @"AVG"];
+    return [self YFDBMaxMinAvgSum: field alias: alias type: @"AVG"];
 }
 
-- (YFDataBase *) selectSum: (NSString *) select
+- (YFDataBase *) selectSum: (NSString *) field
                      alias: (NSString *) alias
 {
-    return [self YFDBMaxMinAvgSum: select alias: alias type: @"SUM"];
+    return [self YFDBMaxMinAvgSum: field alias: alias type: @"SUM"];
 }
+
+- (YFDataBase *) selectMax: (NSString *) field
+{
+    return [self selectMax: field alias: nil];
+}
+
+- (YFDataBase *) selectMin: (NSString *) field
+{
+    return [self selectMin: field alias: nil];
+}
+
+- (YFDataBase *) selectAvg: (NSString *) field
+{
+    return [self selectAvg: field alias: nil];
+}
+
+- (YFDataBase *) selectSum: (NSString *) field
+{
+    return [self selectSum: field alias: nil];
+}
+
+- (YFDataBase *) distinct: (BOOL) distinct
+{
+    self.arDistinct = distinct;
+    return self;
+}
+
 
 #pragma mark - 私有方法.
-- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) select
+- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
                              type: (NSString *) type
 {
-    if (NO == [select isKindOfClass: [NSString class]] || YES == [select isEqualToString:@""]) {
+    if (NO == [field isKindOfClass: [NSString class]] || YES == [field isEqualToString:@""]) {
         // !!!:无法匹配语法
 //        $this->display_error('db_invalid_query');
     }
@@ -224,17 +251,22 @@
 //        show_error('Invalid function type: '.$type);
     }
     
-    if ([alias isEqualToString: @""]) {
-        alias = [self YFDBCreateAliasFromTable: [alias stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+    if (nil == alias || [alias isEqualToString: @""]) {
+        alias = [self YFDBCreateAliasFromTable: [field stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
     }
     
-    // !!!:临时跳出!
-//    NSString * sql = [NSString stringWithFormat: @"%@("]
+    NSString * sql = [NSString stringWithFormat: @"%@(%@) AS %@", type, field, alias];
+    
+    [self.arSelect addObject: sql];
+    
+    if (YES == self.arCaching) {
+        [self.arCacheSelect addObject: sql];
+        [self.arCacheExists addObject: @"select"];
+    }
     
     return self;
 }
 
-// ???:从实现和已有的应用来看,此方法好像并没有存在的价值.
 - (NSString *) YFDBCreateAliasFromTable: (NSString *) item
 {
     if (NSNotFound != [item rangeOfString:@"."].location) {
@@ -242,6 +274,28 @@
     }
     
     return item;
+}
+
+- (YFDataBase *) from: (id) table
+{
+    if (YES == [table isKindOfClass: [NSString class]]) {
+        table = @[table];
+    }
+    
+    // !!!:此处对顺序有某种潜在的依赖吗?如果没有,请同时遍历元素.否则,还不如用for - in.
+    [table enumerateObjectsUsingBlock:^(NSString * str, NSUInteger idx, BOOL *stop) {
+        if (NSNotFound != [str rangeOfString: @","].location) {
+            [[str componentsSeparatedByString:@","] enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
+                obj = [obj stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                [self YFDBTrackAliase: obj];// !!!:临时跳出
+                
+            }];
+        }else{
+            
+        }
+    }];
+                
+    return self;
 }
 
 @end
