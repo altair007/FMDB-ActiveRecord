@@ -8,10 +8,82 @@
 
 #import "YFDataBase.h"
 
+@interface YFDataBase ()
+
+#pragma mark - 私有属性.
+@property (retain, nonatomic) NSMutableArray * arSelect;
+@property (assign, nonatomic)           BOOL   arDistinct;
+@property (retain, nonatomic) NSMutableArray * arFrom;
+@property (retain, nonatomic) NSMutableArray * arJoin;
+@property (retain, nonatomic) NSMutableArray * arWhere;
+@property (retain, nonatomic) NSMutableArray * arLike;
+@property (retain, nonatomic) NSMutableArray * arGroupby;
+@property (retain, nonatomic) NSMutableArray * arHaving;
+@property (retain, nonatomic) NSMutableArray * arKeys;
+@property (assign, nonatomic)           BOOL   arLimit;
+@property (assign, nonatomic)           BOOL   arOffset;
+@property (assign, nonatomic)           BOOL   arOrder;
+@property (retain, nonatomic) NSMutableArray * arOrderby;
+@property (retain, nonatomic) NSMutableArray * arSet;
+@property (retain, nonatomic) NSMutableArray * arWherein;
+@property (retain, nonatomic) NSMutableArray * arAliasedTables;
+@property (retain, nonatomic) NSMutableArray * arStoreArray;
+
+// Active Record 缓存属性.
+@property (assign, nonatomic)           BOOL   arCaching;
+@property (retain, nonatomic) NSMutableArray * arCacheExists;
+@property (retain, nonatomic) NSMutableArray * arCacheSelect;
+@property (retain, nonatomic) NSMutableArray * arCacheFrom;
+@property (retain, nonatomic) NSMutableArray * arCacheJoin;
+@property (retain, nonatomic) NSMutableArray * arCacheWhere;
+@property (retain, nonatomic) NSMutableArray * arCacheLike;
+@property (retain, nonatomic) NSMutableArray * arCacheGroupby;
+@property (retain, nonatomic) NSMutableArray * arCacheHaving;
+@property (retain, nonatomic) NSMutableArray * arCacheOrderby;
+@property (retain, nonatomic) NSMutableArray * arCacheSet;
+
+@property (retain, nonatomic) NSMutableArray * arNoEscape;
+@property (retain, nonatomic) NSMutableArray * arCacheNoEscape;
+
+#pragma mark - 私有方法.
+/**
+ *  为下面四个公开方法服务.
+ *
+ *  selectMax:alias:
+ *  selectMin:alias:
+ *  selectAvg:alias:
+ *  selectSum:alias:
+ *
+ *  @param select 字段.
+ *  @param alias  别名.
+ *  @param type   类型.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) select
+                            alias: (NSString *) alias
+                             type: (NSString *) type;
+
+/**
+ *  根据表来产生别名.
+ *
+ *  @param item 一项.
+ *
+ *  @return 此项对应的别名.
+ */
+- (NSString *) YFDBCreateAliasFromTable: (NSString *) item;
+
+//!!!:暂先不写注释.有些棘手!
+- (NSString *) YFDBProtectIdentifiers: (id)   item
+                         prefixSingle: (BOOL) perfixSingle
+                   protectIdentifiers: (id)   protectIdentifiers
+                          fieldExists: (BOOL) fieldExists;
+@end
+
 @implementation YFDataBase
-+ (instancetype)databaseWithPath:(NSString *)inPath
++ (instancetype) databaseWithPath: (NSString *)inPath
 {
-    // TODO:重写便利构造器!
+    return [[[self alloc] initWithPath: inPath] autorelease];
 }
 
 - (instancetype)initWithPath:(NSString *)inPath
@@ -51,5 +123,114 @@
     }
     
     return self;
+}
+
+- (YFDataBase *)select: (id)    select
+                escape: (BOOL)  escape
+{
+    if (nil == select) {
+        select = @"*";
+    }
+    
+    if ([select isKindOfClass: [NSString class]]) {
+        select = [(NSString *)select componentsSeparatedByString:@","];
+    }
+    
+    [select enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
+        val = [val stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
+
+        if (NO == [val isEqualToString: @""]) {
+            [self.arSelect      addObject: val];
+            [self.arNoEscape    addObject: [NSNumber numberWithBool: escape]];
+            
+            if (YES == self.arCaching) {
+                [self.arCacheSelect     addObject: val];
+                [self.arCacheExists     addObject: @"select"];
+                [self.arCacheNoEscape   addObject: [NSNumber numberWithBool: escape]];
+            }
+        }
+        
+    }];
+    
+    return self;
+}
+
+- (YFDataBase *) selectMax: (NSString *) select
+                     alias: (NSString *) alias
+{
+    return [self YFDBMaxMinAvgSum: select alias: alias type: @"MAX"];
+}
+
+- (YFDataBase *) selectMin: (NSString *) select
+                     alias: (NSString *) alias
+{
+    return [self YFDBMaxMinAvgSum: select alias: alias type: @"MIN"];
+}
+
+- (YFDataBase *) selectAvg: (NSString *) select
+                     alias: (NSString *) alias
+{
+    return [self YFDBMaxMinAvgSum: select alias: alias type: @"AVG"];
+}
+
+- (YFDataBase *) selectSum: (NSString *) select
+                     alias: (NSString *) alias
+{
+    return [self YFDBMaxMinAvgSum: select alias: alias type: @"SUM"];
+}
+
+#pragma mark - 私有方法.
+- (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) select
+                            alias: (NSString *) alias
+                             type: (NSString *) type
+{
+    if (NO == [select isKindOfClass: [NSString class]] || YES == [select isEqualToString:@""]) {
+        // !!!:无法匹配语法
+//        $this->display_error('db_invalid_query');
+    }
+    
+    type = [type uppercaseString];
+    
+    if (NO == [@[@"MAX", @"MIN", @"AVG", @"SUM"] containsObject: type]) {
+        // !!!:无法匹配语法
+//        show_error('Invalid function type: '.$type);
+    }
+    
+    if ([alias isEqualToString: @""]) {
+        alias = [self YFDBCreateAliasFromTable: [alias stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+    }
+    
+    // !!!:临时跳出!
+//    NSString * sql = [NSString stringWithFormat: @"%@("]
+    
+    return self;
+}
+
+// ???:从实现和已有的应用来看,此方法好像并没有存在的价值.
+- (NSString *) YFDBCreateAliasFromTable: (NSString *) item
+{
+    if (NSNotFound != [item rangeOfString:@"."].location) {
+        return [[item componentsSeparatedByString: @"."] lastObject];
+    }
+    
+    return item;
+}
+
+- (NSString *) YFDBProtectIdentifiers: (id)   item
+                         prefixSingle: (BOOL) perfixSingle
+                   protectIdentifiers: (id)   protectIdentifiers
+                          fieldExists: (BOOL) fieldExists
+{
+    // !!!:此处对应逻辑暂时先跳过.
+//    if ( ! is_bool($protect_identifiers))
+//    {
+//        $protect_identifiers = $this->_protect_identifiers;
+//    }
+    // !!!:迭代至此!可能必须先寻找变量或者添加变量$this->_protect_identifiers
+    
+    
+    
+    // !!!:临时返回值.
+    return nil;
 }
 @end

@@ -25,11 +25,14 @@
     self.window.backgroundColor = [UIColor blueColor];
     
     /* 测试数据库 */
-    YFDataBase * db = [[YFDataBase alloc] initWithPath:@"/tmp/tmp.db"];
+    YFDataBase * db = [YFDataBase databaseWithPath: @"/tmp/tmp.db"];
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
-
+//    [db select:@"pkName, txtLove" escape: YES];
+    
+    NSString * str =  [db YFDBCreateAliasFromTable: @"www.baidu.com"];
+    
     [db close];
     [self.window makeKeyAndVisible];
     return YES;
