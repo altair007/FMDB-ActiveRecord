@@ -287,6 +287,7 @@
  *
  *  @return 实例对象自身.
  */
+// !!!: direction参数应该写到枚举里.
 - (YFDataBase *) orderBy: (NSString *) orderBy
                direction: (NSString *) direction;
 

@@ -52,7 +52,10 @@
 //    [db groupBy: @"pkName  , ,  txtLove"];
 //    [db YFDBHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}
 //              type: @"AND"];
-    [db orHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
+//    [db orHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
+    [db orderBy:@"txtName" direction: @""];
+    [db orderBy:@"txtName" direction: @"random"];
+    
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

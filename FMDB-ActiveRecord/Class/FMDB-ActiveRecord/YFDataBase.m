@@ -457,7 +457,12 @@
     }
     
     if (nil == orderbyStatement) {
-        // !!!:迭代至此!
+        // !!!:迭代至此!此方法尚未验证.
+        if (NO == [@[@"ASC", @"DESC"] containsObject: direction]) {
+            direction = @"ASC";
+        }
+        
+        orderbyStatement = [NSString stringWithFormat: @"%@ %@", orderBy, direction];
     }
     
     [self.arOrderby addObject: orderbyStatement];
