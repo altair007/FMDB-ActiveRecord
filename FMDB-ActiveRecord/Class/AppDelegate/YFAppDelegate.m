@@ -35,11 +35,17 @@
 //    [db selectSum: @"pkName" alias: @""];
 //    [db selectMax: @"pkName" alias: @""];
 //    [db selectMin: @"pkName" alias: @""];
-    [db join:@"Person" condtion:@"condition"];
+//    [db join:@"Person" condtion:@"condition"];
     
 //    BOOL b = [db YFDBHasOperator: @"a    b"];
-    [db orWhere: (NSDictionary *) @{@"key = ": @"value", @"key2": [NSNull null]}];
-//
+//    [db orWhere: (NSDictionary *) @{@"key = ": @"value", @"key2": [NSNull null]}];
+    [db YFDBWhereIn:  @{@"key2": @"a, b"}
+              not:  YES
+             type: @"AND"];
+
+    
+//    [db OrWhereNotIn:@{@"key2": @"a, b"}];
+//    [db OrWhereNotIn:@{@"key2": @"a, b"}];
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

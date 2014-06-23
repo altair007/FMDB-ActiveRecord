@@ -9,6 +9,7 @@
 #import "FMDatabase.h"
 
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
+// !!!:可能的优化:把字符串相关的私有工具方法,放到NSString的一个类目里.
 
 /**
  *  支持Active Record模式的数据库类.
@@ -19,11 +20,12 @@
 /**
  *  生成一个查询的 SELECT 部分.
  *
- *  @param field  字段.
+ *  @param field  字段.多个字段,请用","符号分隔.
  *
  *  @return 实例对象自身.
  */
-// !!!: 统一使用"字段, 字段, 字段"语法,而不是数组语法@[字段,字段,字段]?
+// !!!: 统一使用"字段, 字段, 字段"语法,而不是数组语法@[字段,字段,字段]?统一修改一下.
+// !!!: 或许应进行容错设置,即使用户进行了转义,也可以!还有where相关的方法,也是如此!
 - (YFDataBase *) select: (NSString *) field;
 
 /**
@@ -167,6 +169,42 @@
  */
 - (YFDataBase *) orWhere: (NSDictionary *) where;
 
+/**
+ *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果需要,使用 AND 与SQL语句其他部分拼接.
+ *
+ *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) whereIn: (NSDictionary *) where;
 
-//!!!:暂时跳出!	public function where_in($key = NULL, $values = NULL)
+/**
+ *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果需要,使用 OR 与SQL语句其他部分拼接.
+ *
+ *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) orWhereIn: (NSDictionary *) where;
+
+/**
+ *  产生一个 WHERE 字段 NOT IN ('值1', '值2') 形式的SQL查询.如果需要,使用 AND 与SQL语句其他部分拼接.
+ *
+ *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) whereNotIn: (NSDictionary *) where;
+
+/**
+ *  产生一个 WHERE 字段 NOT IN ('值1', '值2') 形式的SQL查询.如果需要,使用 OR 与SQL语句其他部分拼接.
+ *
+ *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) OrWhereNotIn: (NSDictionary *) where;
+
+
+//!!!:临时跳转.	public function like($field, $match = '', $side = 'both')
 @end

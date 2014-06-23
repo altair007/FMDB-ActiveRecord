@@ -11,6 +11,7 @@
 @interface YFDataBase ()
 
 // !!!:提供对多线程的支持吗?block可以很好地支持多线程的!FMDB支持多线程吗?
+// !!!:优化方向,优化注释.
 #pragma mark - 私有属性.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
@@ -26,7 +27,6 @@
 @property (assign, nonatomic)           BOOL   arOrder;
 @property (retain, nonatomic) NSMutableArray * arOrderby;
 @property (retain, nonatomic) NSMutableArray * arSet;
-@property (retain, nonatomic) NSMutableArray * arWherein;
 @property (retain, nonatomic) NSMutableArray * arAliasedTables;
 @property (retain, nonatomic) NSMutableArray * arStoreArray;
 
@@ -98,11 +98,33 @@
  *
  *  @return 一个新的字符串.
  */
-// !!!:有必要单独写一个类目吗?
 - (NSString *) YFDBTrim: (NSString *) str;
 
-// !!!:不建议同时支持 ","分隔的字符串和数组来表示多个对象.二选一吧!(前者更合理,可以使用正则来容错!)
-- (YFDataBase *) YFDBWhereIN;
+/**
+ *  供其他方法调用:whereIn: whereInOr: whereNotIn: whereNotInOr:
+ *
+ *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *  @param isNot YES,是 NOT IN查询;NO,是 IN查询.
+ *  @param type  类型.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
+                         not: (BOOL) isNot
+                        type: (NSString *) type;
+
+/**
+ *  使用"'"符号转义字符串.
+ *
+ *  @param str 字符串.
+ *
+ *  @return 转义后的字符串.
+ */
+- (NSString *) YFDBEscape: (NSString *) str;
+
+- (NSString *) YFDBEscapeStr: (NSString *)str
+                        like: (BOOL) isLike;
+
 @end
 
 @implementation YFDataBase
@@ -129,7 +151,6 @@
         self.arOrder    = NO;
         self.arOrderby  = [NSMutableArray arrayWithCapacity: 42];
         self.arSet      = [NSMutableArray arrayWithCapacity: 42];
-        self.arWherein  = [NSMutableArray arrayWithCapacity: 42];
         self.arAliasedTables = [NSMutableArray arrayWithCapacity: 42];
         self.arStoreArray = [NSMutableArray arrayWithCapacity: 42];
         
@@ -161,7 +182,6 @@
     self.arKeys     = nil;
     self.arOrderby  = nil;
     self.arSet      = nil;
-    self.arWherein  = nil;
     self.arAliasedTables = nil;
     self.arStoreArray = nil;
     
@@ -326,6 +346,26 @@
 {
     return [self YFDBWhere: where type: @"OR"];   
 }
+
+- (YFDataBase *) whereIn: (NSDictionary *) where
+{
+    return [self YFDBWhereIn: where not: NO type: @"AND"];
+}
+
+- (YFDataBase *) orWhereIn: (NSDictionary *) where
+{
+    return [self YFDBWhereIn: where not: NO type: @"OR"];
+}
+
+- (YFDataBase *) whereNotIn: (NSDictionary *) where
+{
+    return [self YFDBWhereIn: where not: YES type: @"AND"];
+}
+
+- (YFDataBase *) OrWhereNotIn: (NSDictionary *) where
+{
+    return [self YFDBWhereIn: where not: YES type: @"OR"];
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
@@ -374,6 +414,8 @@
     type = [type uppercaseString];
     
     [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
+        // !!!:是否有必要加上限制:0 == self.arCacheWhere.count.分析下缓存机制,再作判断.
+        // !!!:此处原文是:			$prefix = (count($this->ar_where) == 0 AND count($this->ar_cache_where) == 0) ? '' : $type;
         NSString * prefix = type;
         if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
             prefix = @"";
@@ -389,14 +431,12 @@
             key = [key stringByAppendingString: operator];
         }
         
-        if ([NSNull null] == obj) {
-            obj = @"";
-        }
+        NSString * whereSegment = [NSString stringWithFormat: @"%@ %@ %@ ", prefix, key, [self YFDBEscape: obj]];
         
-        [self.arWhere addObject: [NSString stringWithFormat: @"%@ %@ %@ ", prefix, key, obj]];
+        [self.arWhere addObject: whereSegment];
 
         if (YES == self.arCaching) {
-            [self.arCacheWhere addObject: [NSString stringWithFormat: @"%@ %@ %@ ", prefix, key, obj]];
+            [self.arCacheWhere addObject: whereSegment];
             [self.arCacheExists addObject: @"where"];
         }
         
@@ -423,4 +463,76 @@
     return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
+- (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
+                         not: (BOOL) isNot
+                        type: (NSString *) type
+{
+    NSString * field = [where allKeys][0];
+    NSString * value = [where objectForKey: field];
+    
+    if ([NSNull null] == (NSNull *)value) {
+        return self;
+    }
+
+    NSArray * values = [value componentsSeparatedByString:@","];
+    NSMutableArray * valuesTemp = [NSMutableArray arrayWithCapacity: 42];
+    [values enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        obj = [self YFDBEscape: [self YFDBTrim: obj]];
+        [valuesTemp addObject: obj];
+    }];
+    value = [valuesTemp componentsJoinedByString: @","];
+    
+    NSString * not = @"NOT";
+    if (NO == isNot) {
+        not = @"";
+    }
+    
+    // !!!:是否有必要加上限制:0 == self.arCacheWhere.count.分析下缓存机制,再作判断.
+    // !!!:此处原文是:$prefix = (count($this->ar_where) == 0) ? '' : $type;
+    NSString * prefix = type;
+    if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
+        prefix = @"";
+    }
+    
+    NSString * whereIn = [NSString stringWithFormat: @"%@ %@ %@ IN (%@)", prefix, field, not, value];
+    
+    [self.arWhere addObject: whereIn];
+    
+    if (YES == self.arCaching) {
+        [self.arCacheWhere addObject: whereIn];
+        [self.arCacheExists addObject: @"where"];
+    }
+    
+    return self;
+}
+
+- (NSString *) YFDBEscape: (NSString *) str
+{
+    if ([NSNull null] == (NSNull *) str) {
+        return @"";
+    }
+    
+    str = [NSString stringWithFormat: @"'%@'",  [self YFDBEscapeStr: str like: NO]];
+    return str;
+}
+
+- (NSString *) YFDBEscapeStr: (NSString *)str
+                        like:(BOOL)isLike
+{
+    // !!!: 暂不模拟sqlite_escape_string.感觉它很鸡肋,没必要实现!
+//    $str = sqlite_escape_string($str);
+    if (YES == isLike) {
+        
+    }
+    
+    // !!!:迭代至此!
+//    if ($like === TRUE)
+//    {
+//        $str = str_replace(	array('%', '_', $this->_like_escape_chr),
+//                           array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', $this->_like_escape_chr.$this->_like_escape_chr),
+//                           $str);
+//    }
+    
+    return str;
+}
 @end
