@@ -10,6 +10,8 @@
 
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
 // !!!:可能的优化:把字符串相关的私有工具方法,放到NSString的一个类目里.
+// !!!:用YFDB翻译一个入门教程.或者课堂上的DEMO.
+// !!!:将自己的工程升级至YFDB.
 
 /**
  *  支持Active Record模式的数据库类.
@@ -205,6 +207,87 @@
  */
 - (YFDataBase *) OrWhereNotIn: (NSDictionary *) where;
 
+/**
+ *  产生查询的 %LIKE% 部分.如果有多个,使用 AND 连接.
+ *
+ *  @param like  一个字典,已字段名为key,以要匹配的字符串为value.
+ *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) like: (NSDictionary *) like
+                 side: (NSString *) side;
 
-//!!!:临时跳转.	public function like($field, $match = '', $side = 'both')
+/**
+ *  产生查询的 NOT LIKE 部分.如果有多个,使用 AND 连接.
+ *
+ *  @param like  一个字典,已字段名为key,以要匹配的字符串为value.
+ *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) notLike: (NSDictionary *) like
+                    side: (NSString *) side;
+
+/**
+ *  产生查询的 %LIKE% 部分.如果有多个,使用 OR 连接.
+ *
+ *  @param like  一个字典,已字段名为key,以要匹配的字符串为value.
+ *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) OrLike: (NSDictionary *) like
+                    side: (NSString *) side;
+
+/**
+ *  产生查询的 NOT LIKE 部分.如果有多个,使用 OR 连接.
+ *
+ *  @param like  一个字典,已字段名为key,以要匹配的字符串为value.
+ *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) OrNotLike: (NSDictionary *) like
+                      side: (NSString *) side;
+
+/**
+ *  产生查询的 GROUP BY 部分.
+ *
+ *  @param by 用于分组的字段,多个字段,请用','分隔.
+ *
+ *  @return 实例对象自身.
+ */
+// !!!:by后面的似乎不一定是字段啊!
+- (YFDataBase *) groupBy: (NSString *) by;
+
+/**
+ *  设置 HAVING 的值.如果有多个,使用 AND 连接.
+ *
+ *  @param having 一个字典,以HAVING子句前半部分为key,可包含操作符;以HAVIN子句的后半部分为value.
+ *
+ *  @return 实例对象的自身.
+ */
+- (YFDataBase *) having: (NSDictionary *) having;
+
+/**
+ *  设置 OR HAVING 的值.如果有多个,使用 OR 连接.
+ *
+ *  @param having 一个字典,以HAVING子句前半部分为key,可包含操作符;以HAVIN子句的后半部分为value.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) orHaving: (NSDictionary *) having;
+
+/**
+ *  设置 ORDER BY 的值.
+ *
+ *  @param orderBy   分组依据,多个请用','分隔.
+ *  @param direction 排序方式,可选: @"ASC", @"DESC", @"RANDOM"
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) orderBy: (NSString *) orderBy
+               direction: (NSString *) direction;
+
 @end

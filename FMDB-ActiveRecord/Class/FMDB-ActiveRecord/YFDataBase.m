@@ -12,6 +12,7 @@
 
 // !!!:提供对多线程的支持吗?block可以很好地支持多线程的!FMDB支持多线程吗?
 // !!!:优化方向,优化注释.
+// !!!:使用复杂的SQL逻辑测试各个方法.
 #pragma mark - 私有属性.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
@@ -122,8 +123,33 @@
  */
 - (NSString *) YFDBEscape: (NSString *) str;
 
-- (NSString *) YFDBEscapeStr: (NSString *)str
-                        like: (BOOL) isLike;
+/**
+ *  供 like:side: 和orLike:side: 调用.
+ *
+ *  @param like  一个字典,以字段名为key,以要匹配的字符串为value.
+ *  @param type  类型,可选: @"AND", @"OR".
+ *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *  @param isNot YES,是 NOT LIKE查询;NO,是 LIKE查询.
+ *
+ *  @return 实例对象自身.
+ */
+// !!!:建议把type和side参数声明为枚举.!
+// !!!:建议,预定义参数使用大写形式.如"BEFORE"
+- (YFDataBase *) YFDBLike: (NSDictionary *) like
+                     type: (NSString *) type
+                     side: (NSString *) side
+                      not: (BOOL) isNot;
+
+/**
+ *  供 having: 和 orHaving: 调用.
+ *
+ *  @param having 一个字典,以HAVING子句前半部分为key,可包含操作符;以HAVIN子句的后半部分为value.
+ *  @param type   类型,可选: @"AND", @"OR".
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) YFDBHaving: (NSDictionary *) having
+                       type: (NSString *) type;
 
 @end
 
@@ -330,7 +356,6 @@
     return self;
 }
 
-// !!!:复杂的SQL语句,真的支持吗?试一下!
 - (YFDataBase *) join: (NSString *) table
              condtion: (NSString *) condtion
 {
@@ -365,6 +390,83 @@
 - (YFDataBase *) OrWhereNotIn: (NSDictionary *) where
 {
     return [self YFDBWhereIn: where not: YES type: @"OR"];
+}
+
+- (YFDataBase *) like: (NSDictionary *) like
+                 side: (NSString *) side
+{
+    return [self YFDBLike: like type: @"AND" side: side not: NO];
+}
+
+- (YFDataBase *) notLike: (NSDictionary *) like
+                    side: (NSString *) side
+{
+    return [self YFDBLike: like type: @"AND" side: side not: YES];
+}
+
+- (YFDataBase *) OrLike: (NSDictionary *) like
+                   side: (NSString *) side
+{
+    return [self YFDBLike: like type: @"OR" side: side not: NO];
+}
+
+- (YFDataBase *) OrNotLike: (NSDictionary *) like
+                      side: (NSString *) side
+{
+    return [self YFDBLike: like type: @"OR" side: side not: YES];
+}
+
+- (YFDataBase *) groupBy: (NSString *) by
+{
+    [[by componentsSeparatedByString: @","] enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
+        obj = [self YFDBTrim: obj];
+        
+        if (YES == [obj isEqualToString: @""]) {
+            return;
+        }
+        
+        [self.arGroupby addObject: obj];
+        
+        if (YES == self.arCaching) {
+            [self.arCacheGroupby addObject: obj];
+            [self.arCacheExists addObject: @"groupby"];
+        }
+    }];
+    
+    return self;
+}
+
+- (YFDataBase *) having: (NSDictionary *) having
+{
+    return [self YFDBHaving: having type: @"AND"];
+}
+
+- (YFDataBase *) orHaving: (NSDictionary *) having
+{
+    return [self YFDBHaving: having type: @"OR"];
+}
+
+- (YFDataBase *) orderBy: (NSString *) orderBy
+               direction: (NSString *) direction
+{
+    NSString * orderbyStatement = nil;
+    
+    direction = [self YFDBTrim:[direction uppercaseString]] ;
+    if (YES == [direction isEqualToString: @"RANDOM"]) {
+        orderbyStatement = @"RANDOM()";
+    }
+    
+    if (nil == orderbyStatement) {
+        // !!!:迭代至此!
+    }
+    
+    [self.arOrderby addObject: orderbyStatement];
+    if (YES == self.arCaching) {
+        [self.arCacheOrderby addObject: orderbyStatement];
+        [self.arCacheExists addObject: @"orderby"];
+    }
+    
+    return self;
 }
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
@@ -463,16 +565,13 @@
     return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
+// !!!:个人感觉,应该让此方法,自动支持批操作!它是字典,有先天条件.!php很可能是受制于自身的逻辑,未能实现自动对批操作的支持.
 - (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
                          not: (BOOL) isNot
                         type: (NSString *) type
 {
     NSString * field = [where allKeys][0];
     NSString * value = [where objectForKey: field];
-    
-    if ([NSNull null] == (NSNull *)value) {
-        return self;
-    }
 
     NSArray * values = [value componentsSeparatedByString:@","];
     NSMutableArray * valuesTemp = [NSMutableArray arrayWithCapacity: 42];
@@ -512,27 +611,84 @@
         return @"";
     }
     
-    str = [NSString stringWithFormat: @"'%@'",  [self YFDBEscapeStr: str like: NO]];
-    return str;
+    return [NSString stringWithFormat: @"'%@'", str];
 }
 
-- (NSString *) YFDBEscapeStr: (NSString *)str
-                        like:(BOOL)isLike
+- (YFDataBase *) YFDBLike: (NSDictionary *) like
+                     type: (NSString *) type
+                     side: (NSString *) side
+                      not: (BOOL) isNot
 {
-    // !!!: 暂不模拟sqlite_escape_string.感觉它很鸡肋,没必要实现!
-//    $str = sqlite_escape_string($str);
-    if (YES == isLike) {
-        
+    NSString * not = @"";
+    if (YES == isNot) {
+        not = @"NOT";
     }
     
-    // !!!:迭代至此!
-//    if ($like === TRUE)
-//    {
-//        $str = str_replace(	array('%', '_', $this->_like_escape_chr),
-//                           array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', $this->_like_escape_chr.$this->_like_escape_chr),
-//                           $str);
-//    }
+    [like enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL *stop) {
+        NSString * prefix = type;
+        // ???:是否有必要考虑缓存like字段不为空的情况.暂时先考虑.
+        if (0 == self.arLike.count && 0 == self.arCacheLike.count) {
+            prefix = @"";
+        }
+        
+        // 转义 LIKE 条件中的通配符.
+        NSString * likeEscapeChr = @"!";
+        NSRegularExpression * regExp = [NSRegularExpression regularExpressionWithPattern: [NSString stringWithFormat:@"(%%|_|%@)", likeEscapeChr] options:0 error: nil];
+        obj = [regExp stringByReplacingMatchesInString: obj options:0 range: NSMakeRange(0, obj.length) withTemplate: [NSString stringWithFormat: @"%@$1", likeEscapeChr]];
+
+        NSString * value = [NSString stringWithFormat:@"%%%@%%", obj];
+        
+        if ([side isEqualToString: @"none"]) {
+            value = obj;
+        }
+        
+        if ([side isEqualToString: @"before"]) {
+            value = [NSString stringWithFormat: @"%%%@", obj];
+        }
+        
+        if ([side isEqualToString: @"after"]) {
+            value = [NSString stringWithFormat: @"%@%%", obj];
+        }
+        
+        NSString * likeStatement = [NSString stringWithFormat: @"%@ %@ %@ LIKE '%@' ESCAPE '%@' ", prefix, key, not, value, likeEscapeChr];
+        
+        [self.arLike addObject: likeStatement];
+        if (YES == self.arCaching) {
+            [self.arCacheLike addObject: likeStatement];
+            [self.arCacheExists addObject: @"like"];
+        }
+        
+    }];
     
-    return str;
+    return self;
 }
+
+- (YFDataBase *) YFDBHaving: (NSDictionary *) having
+                       type: (NSString *) type
+{
+    [having enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL *stop) {
+        NSString * prefix = type;
+        // !!!:有无必要考虑缓存的self.arCacheHaving.count?
+        if (0 == self.arHaving.count && 0 == self.arCacheHaving.count) {
+            prefix = @"";
+        }
+        
+        if (NO == [self YFDBHasOperator: key]) {
+            key = [key stringByAppendingString: @" = "];
+        }
+        
+        obj = [self YFDBEscape: obj];
+        
+        NSString * havingSegment = [NSString stringWithFormat: @"%@ %@ %@", prefix, key, obj];
+        [self.arHaving addObject: havingSegment];
+        if (YES == self.arCaching) {
+            [self.arCacheHaving addObject: havingSegment];
+            [self.arCacheExists addObject: @"having"];
+        }
+        
+    }];
+    
+    return self;
+}
+
 @end
