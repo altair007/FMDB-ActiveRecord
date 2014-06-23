@@ -35,7 +35,11 @@
 //    [db selectSum: @"pkName" alias: @""];
 //    [db selectMax: @"pkName" alias: @""];
 //    [db selectMin: @"pkName" alias: @""];
-    [[db selectMin: @"pkName"] distinct:YES];
+    [db join:@"Person" condtion:@"condition"];
+    
+//    BOOL b = [db YFDBHasOperator: @"a    b"];
+    [db orWhere: (NSDictionary *) @{@"key = ": @"value", @"key2": [NSNull null]}];
+//
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

@@ -10,6 +10,7 @@
 
 @interface YFDataBase ()
 
+// !!!:提供对多线程的支持吗?block可以很好地支持多线程的!FMDB支持多线程吗?
 #pragma mark - 私有属性.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
@@ -71,17 +72,37 @@
 - (NSString *) YFDBCreateAliasFromTable: (NSString *) item;
 
 /**
- *  用于追踪使用了表别名的SQL语句.
+ *  供where: 和orWhere:type:调用.
  *
- *  @param table 要观察的表.
+ *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *  @param type  类型.
  *
- *  @return <#return value description#>
+ *  @return 实例对象自身.
  */
-// !!!:迭代到此  		// Extract any aliases that might exist.  We use this information
-// in the _protect_identifiers to know whether to add a table prefix
-// !!!:或许,此方法没有必要实现!
-- (NSString *) YFDBTrackAliases: (NSString *) table;
+- (YFDataBase *) YFDBWhere: (NSDictionary *) where
+                      type: (NSString *) type;
 
+/**
+ *  测试字符串是否含有一个SQL操作符.
+ *
+ *  @param str 字符串.
+ *
+ *  @return YES,含有;NO,不含有;
+ */
+- (BOOL) YFDBHasOperator: (NSString *) str;
+
+/**
+ *  清除字符串的首尾空白.
+ *
+ *  @param str 字符串.
+ *
+ *  @return 一个新的字符串.
+ */
+// !!!:有必要单独写一个类目吗?
+- (NSString *) YFDBTrim: (NSString *) str;
+
+// !!!:不建议同时支持 ","分隔的字符串和数组来表示多个对象.二选一吧!(前者更合理,可以使用正则来容错!)
+- (YFDataBase *) YFDBWhereIN;
 @end
 
 @implementation YFDataBase
@@ -98,6 +119,7 @@
         self.arDistinct = NO;
         self.arFrom     = [NSMutableArray arrayWithCapacity: 42];
         self.arJoin     = [NSMutableArray arrayWithCapacity: 42];
+        self.arWhere    = [NSMutableArray arrayWithCapacity: 42];
         self.arLike     = [NSMutableArray arrayWithCapacity: 42];
         self.arGroupby  = [NSMutableArray arrayWithCapacity: 42];
         self.arHaving   = [NSMutableArray arrayWithCapacity: 42];
@@ -132,6 +154,7 @@
     self.arSelect   = nil;
     self.arFrom     = nil;
     self.arJoin     = nil;
+    self.arWhere    = nil;
     self.arLike     = nil;
     self.arGroupby  = nil;
     self.arHaving   = nil;
@@ -156,18 +179,12 @@
     [super dealloc];
 }
 
-- (YFDataBase *)select: (id) field
+- (YFDataBase *)select: (NSString *) field
 {
-    if (nil == field) {
-        field = @"*";
-    }
+    NSArray * fields = [(NSString *)select componentsSeparatedByString:@","];
     
-    if ([field isKindOfClass: [NSString class]]) {
-        field = [(NSString *)select componentsSeparatedByString:@","];
-    }
-    
-    [field enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
-        val = [val stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
+    [fields enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
+        val = [self YFDBTrim: val];
 
         if (NO == [val isEqualToString: @""]) {
             [self.arSelect      addObject: val];
@@ -233,7 +250,82 @@
     return self;
 }
 
+- (YFDataBase *) from: (NSString *) table
+{
+    if (NSNotFound == [table rangeOfString: @","].location) {
+        table = [self YFDBTrim: table];
+        
+        [self.arFrom addObject: table];
+        
+        if (YES == self.arCaching) {
+            [self.arCacheFrom addObject: table];
+            [self.arCacheExists addObject: @"from"];
+        }
+        
+        return self;
+    }
+    
+    [[table componentsSeparatedByString:@","] enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
+        obj = [self YFDBTrim: obj];
+        
+        [self.arFrom addObject: obj];
+        
+        if (YES == self.arCaching) {
+            [self.arCacheFrom addObject: obj];
+            [self.arCacheExists addObject: @"from"];
+        }
+    }];
+    
+    return self;
+}
 
+- (YFDataBase *) join: (NSString *) table
+             condtion: (NSString *) condtion
+                 type: (NSString *) type
+{
+    if (nil == type) {
+        type = @"";
+    }
+    
+    if (NO == [type isEqualToString: @""]) {
+        type = [type uppercaseString];
+        
+        // ???:以下几种,sqlite都支持吗?
+        if (NO == [@[@"LEFT", @"RIGHT", @"OUTER", @"INNER", @"LEFT OUTER", @"RIGHT OUTER"] containsObject: type]) {
+            type = @"";
+        }
+        
+    }
+    
+    // 拼接 JOIN 语句.
+    NSString * join = [NSString stringWithFormat: @"%@ JOIN %@ ON %@", type, table, condtion];
+
+    [self.arJoin addObject: join];
+    
+    if (YES == self.arCaching) {
+        [self.arCacheJoin addObject: join];
+        [self.arCacheExists addObject: @"join"];
+    }
+    
+    return self;
+}
+
+// !!!:复杂的SQL语句,真的支持吗?试一下!
+- (YFDataBase *) join: (NSString *) table
+             condtion: (NSString *) condtion
+{
+    return [self join: table condtion: condtion type: nil];
+}
+
+- (YFDataBase *) where: (NSDictionary *)where
+{
+    return [self YFDBWhere: where type: @"AND"];
+}
+
+- (YFDataBase *) orWhere: (NSDictionary *) where
+{
+    return [self YFDBWhere: where type: @"OR"];   
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
@@ -252,7 +344,7 @@
     }
     
     if (nil == alias || [alias isEqualToString: @""]) {
-        alias = [self YFDBCreateAliasFromTable: [field stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+        alias = [self YFDBTrim: field];
     }
     
     NSString * sql = [NSString stringWithFormat: @"%@(%@) AS %@", type, field, alias];
@@ -276,26 +368,59 @@
     return item;
 }
 
-- (YFDataBase *) from: (id) table
+- (YFDataBase*) YFDBWhere: (NSDictionary *) where
+                     type: (NSString *) type
 {
-    if (YES == [table isKindOfClass: [NSString class]]) {
-        table = @[table];
+    type = [type uppercaseString];
+    
+    [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
+        NSString * prefix = type;
+        if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
+            prefix = @"";
+        }
+        
+        if (NO == [self YFDBHasOperator: key]) {
+            NSString * operator = @" =";
+            
+            if ([NSNull null] == obj) {
+                operator = @" IS NULL";
+            }
+            
+            key = [key stringByAppendingString: operator];
+        }
+        
+        if ([NSNull null] == obj) {
+            obj = @"";
+        }
+        
+        [self.arWhere addObject: [NSString stringWithFormat: @"%@ %@ %@ ", prefix, key, obj]];
+
+        if (YES == self.arCaching) {
+            [self.arCacheWhere addObject: [NSString stringWithFormat: @"%@ %@ %@ ", prefix, key, obj]];
+            [self.arCacheExists addObject: @"where"];
+        }
+        
+    }];
+    
+    return self;
+}
+
+- (BOOL) YFDBHasOperator: (NSString *) str
+{
+    str = [self YFDBTrim: str];
+    
+    NSRegularExpression * regExp = [NSRegularExpression regularExpressionWithPattern: @"(\\s|<|>|!|=|is null|is not null)" options: NSRegularExpressionCaseInsensitive error: nil];
+    NSRange range = [regExp rangeOfFirstMatchInString: str options:0 range: NSMakeRange(0, str.length)];
+    if (NSNotFound == range.location) {
+        return NO;
     }
     
-    // !!!:此处对顺序有某种潜在的依赖吗?如果没有,请同时遍历元素.否则,还不如用for - in.
-    [table enumerateObjectsUsingBlock:^(NSString * str, NSUInteger idx, BOOL *stop) {
-        if (NSNotFound != [str rangeOfString: @","].location) {
-            [[str componentsSeparatedByString:@","] enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
-                obj = [obj stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                [self YFDBTrackAliase: obj];// !!!:临时跳出
-                
-            }];
-        }else{
-            
-        }
-    }];
-                
-    return self;
+    return YES;
+}
+
+- (NSString *) YFDBTrim: (NSString *) str
+{
+    return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
 @end

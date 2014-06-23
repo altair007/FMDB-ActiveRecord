@@ -19,11 +19,12 @@
 /**
  *  生成一个查询的 SELECT 部分.
  *
- *  @param field  数组,或者以','分隔的字符串,用于存储字段信息.
+ *  @param field  字段.
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) select: (id) field;
+// !!!: 统一使用"字段, 字段, 字段"语法,而不是数组语法@[字段,字段,字段]?
+- (YFDataBase *) select: (NSString *) field;
 
 /**
  *  生成一个查询的 SELECT MAX(字段) 部分.
@@ -117,11 +118,55 @@
 /**
  *  生成一个查询的 FROM 部分.
  *
- *  @param table 表名.可以是一个字符串或数组.
+ *  @param table 表名.
  *
  *  @return 实例对象自身.
  */
-// !!!:我觉得此处不应该提供对数组的额外支持!OC不是脚本!会带来使用者理解的混乱!
-- (YFDataBase *) from: (id) table;
+- (YFDataBase *) from: (NSString *) table;
 
+/**
+ *  生成一个查询的 JOIN 部分.
+ *
+ *  @param table    表名.
+ *  @param condtion JOIN 条件.
+ *  @param type     JOIN 类型
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) join: (NSString *) table
+             condtion: (NSString *) condtion
+                 type: (NSString *) type;
+
+/**
+ *  生成一个查询的 JOIN 部分.
+ *
+ *  @param table    表名.
+ *  @param condtion JOIN 条件.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) join: (NSString *) table
+             condtion: (NSString *) condtion;
+
+
+/**
+ *  产生一个查询的 WHERE 部分.多个查询条件,将使用 AND 连接.
+ *
+ *  @param where where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) where: (NSDictionary *) where;
+
+/**
+ *  产生一个查询的 WHERE 部分.多个查询条件,将使用 OR 连接.
+ *
+ *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) orWhere: (NSDictionary *) where;
+
+
+//!!!:暂时跳出!	public function where_in($key = NULL, $values = NULL)
 @end
