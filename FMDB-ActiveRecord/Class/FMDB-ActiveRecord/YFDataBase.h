@@ -291,4 +291,43 @@
 - (YFDataBase *) orderBy: (NSString *) orderBy
                direction: (NSString *) direction;
 
+/**
+ *  设置 LIMIT 值.
+ *
+ *  @param limit  limit 值.
+ *  @param offset offset 值.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) limit: (NSUInteger) limit
+                offset: (NSUInteger) offset;
+
+/**
+ *  设置 LIMIT 值.
+ *
+ *  @param limit  limit 值.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) limit: (NSUInteger) limit;
+
+/**
+ *  设置 OFFSET 值.
+ *
+ *  @param offset offset 值.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) offset: (NSUInteger) offset;
+
+/**
+ *  设置用于插入或更新数据的键值对.
+ *
+ *  @param set 字典,以字段为key,以要设置的值为value.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) set: (NSDictionary *) set;
+
+//!!!:临时跳转.	public function get($table = '', $limit = null, $offset = null)
 @end

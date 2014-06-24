@@ -25,7 +25,7 @@
     self.window.backgroundColor = [UIColor blueColor];
     
     /* 测试数据库 */
-    YFDataBase * db = [YFDataBase databaseWithPath: @"/tmp/tmp.db"];
+    YFDataBase * db = [YFDataBase databaseWithPath: @"/tmp/tmp.sqlite"];
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
@@ -53,9 +53,14 @@
 //    [db YFDBHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}
 //              type: @"AND"];
 //    [db orHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
-    [db orderBy:@"txtName" direction: @""];
+//    [db orderBy:@"txtName" direction: @""];
     [db orderBy:@"txtName" direction: @"random"];
+//    [db limit: 4];
+//    [db offset: 8];
+//    [db  set: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
     
+//    [db YFDBResetRun: @{@"arSet":@""}];
+    [db YFDBResetSelect];
     [db close];
     [self.window makeKeyAndVisible];
     return YES;

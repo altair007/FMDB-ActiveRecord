@@ -14,6 +14,8 @@
 // !!!:优化方向,优化注释.
 // !!!:使用复杂的SQL逻辑测试各个方法.
 #pragma mark - 私有属性.
+// !!!:给变量加一些注释.
+// !!!:此处给属性添加"ar"前缀的目的是为了与方法区分(OC中不得不遵守的原因).有没有更好的策略.比如放到一个字典中,直接以"select"等为键,已一个可变数组为值.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
 @property (retain, nonatomic) NSMutableArray * arFrom;
@@ -23,13 +25,14 @@
 @property (retain, nonatomic) NSMutableArray * arGroupby;
 @property (retain, nonatomic) NSMutableArray * arHaving;
 @property (retain, nonatomic) NSMutableArray * arKeys;
-@property (assign, nonatomic)           BOOL   arLimit;
-@property (assign, nonatomic)           BOOL   arOffset;
-@property (assign, nonatomic)           BOOL   arOrder;
+// !!!:使用有符号性或许更合适,要不然无法分辨.又或者使用最大正整数常量初始化.
+@property (assign, nonatomic)     NSUInteger   arLimit;
+@property (assign, nonatomic)     NSUInteger   arOffset;
+@property (assign, nonatomic)           BOOL   arOrder; //!!!:似乎没有存在价值.
 @property (retain, nonatomic) NSMutableArray * arOrderby;
-@property (retain, nonatomic) NSMutableArray * arSet;
-@property (retain, nonatomic) NSMutableArray * arAliasedTables;
-@property (retain, nonatomic) NSMutableArray * arStoreArray;
+@property (retain, nonatomic) NSMutableDictionary * arSet;
+@property (retain, nonatomic) NSMutableArray * arWherein;
+@property (retain, nonatomic) NSMutableArray * arStoreArray; //!!!:似乎没有存在价值.
 
 // Active Record 缓存属性.
 @property (assign, nonatomic)           BOOL   arCaching;
@@ -151,6 +154,30 @@
 - (YFDataBase *) YFDBHaving: (NSDictionary *) having
                        type: (NSString *) type;
 
+/**
+ *  当被调用时,合并缓存的数据库查询信息.
+ */
+- (void) YFDBMergeCache;
+
+/**
+ *  重置 active record 的值.
+ *
+ *  @param resetItems 一个字典,以要重置的属性为key,以属性默认值为value.
+ */
+- (void) YFDBResetRun: (NSDictionary *) resetItems;
+
+/**
+ *  重置 active record 的值.
+ */
+- (void) YFDBResetSelect;
+
+/**
+ *  编译 SELECT 语句.
+ *
+ *  @return SELECT 语句.
+ */
+- (NSString *) YFDBCompileSelect;
+
 @end
 
 @implementation YFDataBase
@@ -172,12 +199,12 @@
         self.arGroupby  = [NSMutableArray arrayWithCapacity: 42];
         self.arHaving   = [NSMutableArray arrayWithCapacity: 42];
         self.arKeys     = [NSMutableArray arrayWithCapacity: 42];
-        self.arLimit    = NO;
-        self.arOffset   = NO;
+        self.arLimit    = 0;
+        self.arOffset   = 0;
         self.arOrder    = NO;
         self.arOrderby  = [NSMutableArray arrayWithCapacity: 42];
-        self.arSet      = [NSMutableArray arrayWithCapacity: 42];
-        self.arAliasedTables = [NSMutableArray arrayWithCapacity: 42];
+        self.arSet      = [NSMutableDictionary dictionaryWithCapacity: 42];
+        self.arWherein = [NSMutableArray arrayWithCapacity: 42];
         self.arStoreArray = [NSMutableArray arrayWithCapacity: 42];
         
         self.arCaching = NO;
@@ -208,7 +235,7 @@
     self.arKeys     = nil;
     self.arOrderby  = nil;
     self.arSet      = nil;
-    self.arAliasedTables = nil;
+    self.arWherein = nil;
     self.arStoreArray = nil;
     
     self.arCacheExists = nil;
@@ -457,7 +484,6 @@
     }
     
     if (nil == orderbyStatement) {
-        // !!!:迭代至此!此方法尚未验证.
         if (NO == [@[@"ASC", @"DESC"] containsObject: direction]) {
             direction = @"ASC";
         }
@@ -471,6 +497,34 @@
         [self.arCacheExists addObject: @"orderby"];
     }
     
+    return self;
+}
+
+- (YFDataBase *) limit: (NSUInteger) limit
+                offset: (NSUInteger) offset
+{
+    self.arLimit = limit;
+    self.arOffset = 0;
+    
+    return self;
+}
+
+- (YFDataBase *) limit: (NSUInteger) limit
+{
+    return [self limit: limit offset: 0];
+}
+
+- (YFDataBase *) offset: (NSUInteger) offset
+{
+    self.arOffset = offset;
+    return self;
+}
+
+- (YFDataBase *) set: (NSDictionary *) set
+{
+    [set enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [self.arSet setObject: obj forKey: key];
+    }];
     return self;
 }
 #pragma mark - 私有方法.
@@ -696,4 +750,102 @@
     return self;
 }
 
+- (void) YFDBMergeCache
+{
+    // !!!: 此方法暂跳过验证测试!
+    if (0 == self.arCacheExists.count) {
+        return;
+    }
+    
+    // !!!:如果属性与方法的区分策略变更,此处的逻辑也要相应调整.
+    [self.arCacheExists enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
+        // !!!: 可以把类似的逻辑,having位置的值改为大写了!           [self.arCacheExists addObject: @"having"];
+        NSString * key = [@"ar" stringByAppendingString: [obj capitalizedString]];
+        NSString * cacheKey = [@"arCache" stringByAppendingString: [obj capitalizedString]];
+        
+        NSMutableArray * value = [self valueForKey: key];
+        NSMutableArray * cacheValue = [self valueForKey: cacheKey];
+        
+        if (0 == cacheValue.count) {
+            return;
+        }
+        
+        [cacheValue addObjectsFromArray: value];
+        
+        value = [NSMutableArray arrayWithCapacity: 42];
+        [cacheValue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            if (NO == [value containsObject: obj]) { //!!!:去重操作,真的不会有影响吗?
+                [value addObject: obj];
+            }
+        }];
+        
+        [self setValue: value forKey: key];
+    }];
+    // !!!:缓存的操作,在何处"重置"?不需要重置?
+}
+
+- (void) YFDBResetRun: (NSDictionary *) resetItems
+{
+    [resetItems enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        if (NO == [self.arStoreArray containsObject: key]) {
+            [self setValue: obj forKey: key];
+        }
+    }];
+}
+
+- (void) YFDBResetSelect
+{
+    NSDictionary * resetItems = @{@"arSelect": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arFrom": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arJoin": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arWhere": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arLike": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arGroupby": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arHaving": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arOrderby": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arWherein": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arDistinct": [NSNumber numberWithBool: NO],
+                                  @"arLimit": [NSNumber numberWithUnsignedInteger:0],
+                                  @"arOffset": [NSNumber numberWithUnsignedInteger:0],
+                                  @"arOrder": [NSNumber numberWithBool: NO]
+                                  };
+    
+    return [self YFDBResetRun: resetItems];
+}
+
+- (NSString *) YFDBCompileSelect
+{
+    NSMutableString * selectClause = [NSMutableString stringWithString:@"SELECT"];
+    
+    // 将缓存内容与当前语句合并.
+    [self YFDBMergeCache];
+    
+    /* 生成查询的 SELECT 部分. */
+    if (YES == self.arDistinct) {
+        [selectClause appendString: @" DISTINCT"];
+    }
+    
+    NSString * selectClauseSegments = nil;
+    if (0 == self.arSelect.count) {
+        selectClauseSegments = @"*";
+    }
+    
+    if (nil == selectClauseSegments) {
+        selectClauseSegments = [self.arSelect componentsJoinedByString: @", "];
+    }
+    
+    [selectClause appendFormat: @" %@", selectClauseSegments];
+    
+    /* 生成查询的 FROM 部分. */
+    NSMutableString * fromClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arFrom.count) {
+        // !!!: 为什么要加分号,为了美观吗?
+        // !!!:临时跳出,需要寻找:			$sql .= $this->_from_tables($this->ar_from);
+//        [fromClause appendFormat: @"\nFROM %@", ]
+    }
+    
+    // 最后再拼接.
+    NSString * sql = @"";
+    return sql;
+}
 @end
