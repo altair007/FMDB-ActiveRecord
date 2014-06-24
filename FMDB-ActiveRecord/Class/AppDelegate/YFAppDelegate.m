@@ -30,6 +30,14 @@
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
 
+    FMResultSet * result = [db get:@"YFDBPerson"];
+    while ([result next]) {
+        NSString * name = [result stringForColumn: @"pkName"];
+        NSUInteger age = [result intForColumn: @"intAge"];
+        [self showAlertViewWithMessage: [name stringByAppendingFormat:@"%@", [NSNumber numberWithUnsignedInteger: age]]];
+    }
+    
+    [self showAlertViewWithMessage: db.lastErrorMessage];
     
     [db close];
     

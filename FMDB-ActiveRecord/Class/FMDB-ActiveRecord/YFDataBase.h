@@ -125,7 +125,7 @@
 /**
  *  生成一个查询的 FROM 部分.
  *
- *  @param table 表名.
+ *  @param table 表名,多个,请用','符号隔开.
  *
  *  @return 实例对象自身.
  */
@@ -332,5 +332,34 @@
  */
 - (YFDataBase *) set: (NSDictionary *) set;
 
-//!!!:临时跳转.	public function get($table = '', $limit = null, $offset = null)
+/**
+ *  基于其他函数编译 SELECT 语句,并执行查询.
+ *
+ *  @param table  表名,多个表名,请用 ',' 符号分隔.
+ *  @param limit  查询的限制行数.
+ *  @param offset 偏移值.
+ *
+ *  @return 查询结果.
+ */
+- (FMResultSet *) get: (NSString *) table
+                limit: (NSUInteger) limit
+               offset: (NSUInteger) offset;
+
+/**
+ *  基于其他函数编译 SELECT 语句,并执行查询.
+ *
+ *  @param table 表名,多个表名,请用 ',' 符号分隔.
+ *
+ *  @return 查询结果.
+ */
+- (FMResultSet *) get: (NSString *) table;
+
+/**
+ *  基于其他函数编译 SELECT 语句,并执行查询.
+ *
+ *  @return 查询结果.
+ */
+- (FMResultSet *) get;
+
+//!!!:迭代至此!	public function count_all_results($table = '')
 @end

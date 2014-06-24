@@ -331,6 +331,10 @@
 
 - (YFDataBase *) from: (NSString *) table
 {
+    if (nil == table) {
+        return self;
+    }
+    
     if (NSNotFound == [table rangeOfString: @","].location) {
         table = [self YFDBTrim: table];
         
@@ -534,6 +538,36 @@
         [self.arSet setObject: obj forKey: key];
     }];
     return self;
+}
+
+- (FMResultSet *) get: (NSString *) table
+                limit: (NSUInteger) limit
+               offset: (NSUInteger) offset
+{
+    if (nil != table && NO == [table isEqual: @""]) {
+        [self from: table];
+    }
+    
+    if (NSUIntegerMax != limit) {
+        [self limit: limit offset: offset];
+    }
+    
+    NSString * sql = [self YFDBCompileSelect];
+    [self YFDBResetSelect];
+    
+    FMResultSet * result = [self executeQuery: sql];
+    
+    return result;
+}
+
+- (FMResultSet *) get: (NSString *) table
+{
+    return [self get: table limit: NSUIntegerMax offset:0];
+}
+
+- (FMResultSet *) get
+{
+    return [self get: nil limit: NSUIntegerMax offset:0];
 }
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
