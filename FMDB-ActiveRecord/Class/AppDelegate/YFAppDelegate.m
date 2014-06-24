@@ -29,39 +29,10 @@
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
-//    [db select:@"pkName, txtLove" escape: YES];
-//    NSString * str = [db YFDBEscapeIdentifiers: @"数据库.表.王列王.颜风"];
-//    [db selectAvg: @"pkName" alias: @""];
-//    [db selectSum: @"pkName" alias: @""];
-//    [db selectMax: @"pkName" alias: @""];
-//    [db selectMin: @"pkName" alias: @""];
-//    [db join:@"Person" condtion:@"condition"];
-    
-//    BOOL b = [db YFDBHasOperator: @"a    b"];
-//    [db orWhere: (NSDictionary *) @{@"key = ": @"value", @"key2": [NSNull null]}];
-//    [db YFDBLike: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}
-//            type: @"AND"
-//            side: @"after"
-//             not: YES];
 
     
-//    [db OrWhereNotIn:@{@"key2": @"a, b"}];
-//    [db OrWhereNotIn:@{@"key2": @"a, b"}];
-//    [db OrNotLike:@{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"} side:@"BOTH"];
-//    [db YFDBExplode: @"无与伦比, 为,杰 ,沉,沦,"];
-//    [db groupBy: @"pkName  , ,  txtLove"];
-//    [db YFDBHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}
-//              type: @"AND"];
-//    [db orHaving: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
-//    [db orderBy:@"txtName" direction: @""];
-    [db orderBy:@"txtName" direction: @"random"];
-//    [db limit: 4];
-//    [db offset: 8];
-//    [db  set: @{@"fileld1" : @"val%ue1", @"fileld2" : @"value_2"}];
-    
-//    [db YFDBResetRun: @{@"arSet":@""}];
-    [db YFDBResetSelect];
     [db close];
+    
     [self.window makeKeyAndVisible];
     return YES;
 }

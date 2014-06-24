@@ -16,6 +16,7 @@
 #pragma mark - 私有属性.
 // !!!:给变量加一些注释.
 // !!!:此处给属性添加"ar"前缀的目的是为了与方法区分(OC中不得不遵守的原因).有没有更好的策略.比如放到一个字典中,直接以"select"等为键,已一个可变数组为值.
+// !!!:可以直接存储字符串.将子句本身声明为属性.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
 @property (retain, nonatomic) NSMutableArray * arFrom;
@@ -28,7 +29,7 @@
 // !!!:使用有符号性或许更合适,要不然无法分辨.又或者使用最大正整数常量初始化.
 @property (assign, nonatomic)     NSUInteger   arLimit;
 @property (assign, nonatomic)     NSUInteger   arOffset;
-@property (assign, nonatomic)           BOOL   arOrder; //!!!:似乎没有存在价值.
+@property (assign, nonatomic)     NSString*    arOrder; //!!!:似乎没有存在价值.
 @property (retain, nonatomic) NSMutableArray * arOrderby;
 @property (retain, nonatomic) NSMutableDictionary * arSet;
 @property (retain, nonatomic) NSMutableArray * arWherein;
@@ -178,6 +179,10 @@
  */
 - (NSString *) YFDBCompileSelect;
 
+//!!!:方法有点鸡肋,直接存储from子句不就行了.没有必要的转换:字符串-->数组-->字符串.而且,和IN方法的逻辑冲突!
+// !!!: 仅被调用一次,没必要写成方法.
+- (NSString *) YFDBFromTables: (NSArray *) tables;
+
 @end
 
 @implementation YFDataBase
@@ -199,9 +204,9 @@
         self.arGroupby  = [NSMutableArray arrayWithCapacity: 42];
         self.arHaving   = [NSMutableArray arrayWithCapacity: 42];
         self.arKeys     = [NSMutableArray arrayWithCapacity: 42];
-        self.arLimit    = 0;
+        self.arLimit    = NSUIntegerMax;
         self.arOffset   = 0;
-        self.arOrder    = NO;
+        self.arOrder    = @"";
         self.arOrderby  = [NSMutableArray arrayWithCapacity: 42];
         self.arSet      = [NSMutableDictionary dictionaryWithCapacity: 42];
         self.arWherein = [NSMutableArray arrayWithCapacity: 42];
@@ -233,6 +238,7 @@
     self.arGroupby  = nil;
     self.arHaving   = nil;
     self.arKeys     = nil;
+    self.arOrder    = nil;
     self.arOrderby  = nil;
     self.arSet      = nil;
     self.arWherein = nil;
@@ -484,7 +490,9 @@
     }
     
     if (nil == orderbyStatement) {
-        if (NO == [@[@"ASC", @"DESC"] containsObject: direction]) {
+        if (YES ==  [[self YFDBTrim: direction] isEqualToString: @""]  &&
+            NO == [@[@"ASC", @"DESC"] containsObject: direction]) { //!!!: 此处将允许direction为@"",但是如此得到的结果,将依赖于数据库的默认排序顺序!
+            // !!!:移除self的arOrder或者dierection变量声明为枚举,才可以彻底解决此混乱!
             direction = @"ASC";
         }
         
@@ -504,7 +512,7 @@
                 offset: (NSUInteger) offset
 {
     self.arLimit = limit;
-    self.arOffset = 0;
+    self.arOffset = offset;
     
     return self;
 }
@@ -752,7 +760,6 @@
 
 - (void) YFDBMergeCache
 {
-    // !!!: 此方法暂跳过验证测试!
     if (0 == self.arCacheExists.count) {
         return;
     }
@@ -774,7 +781,7 @@
         
         value = [NSMutableArray arrayWithCapacity: 42];
         [cacheValue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            if (NO == [value containsObject: obj]) { //!!!:去重操作,真的不会有影响吗?
+            if (NO == [value containsObject: obj]) {
                 [value addObject: obj];
             }
         }];
@@ -807,7 +814,7 @@
                                   @"arDistinct": [NSNumber numberWithBool: NO],
                                   @"arLimit": [NSNumber numberWithUnsignedInteger:0],
                                   @"arOffset": [NSNumber numberWithUnsignedInteger:0],
-                                  @"arOrder": [NSNumber numberWithBool: NO]
+                                  @"arOrder": @""
                                   };
     
     return [self YFDBResetRun: resetItems];
@@ -839,13 +846,66 @@
     /* 生成查询的 FROM 部分. */
     NSMutableString * fromClause = [NSMutableString stringWithCapacity: 42];
     if (0 != self.arFrom.count) {
-        // !!!: 为什么要加分号,为了美观吗?
-        // !!!:临时跳出,需要寻找:			$sql .= $this->_from_tables($this->ar_from);
-//        [fromClause appendFormat: @"\nFROM %@", ]
+        // !!!: 为什么要加'\n'换行,为了美观吗?
+        [fromClause appendFormat: @"\nFROM %@", [self YFDBFromTables: self.arFrom]];
     }
     
-    // 最后再拼接.
-    NSString * sql = @"";
+    /* 生成查询的 JOIN 部分. */
+    NSMutableString * joinClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arJoin) {
+        [joinClause appendFormat:@"\n%@", [self.arJoin componentsJoinedByString: @"\n"]];
+    }
+    
+    /* 生成查询的 WHERE 部分. */
+    NSMutableString * whereClause = [NSMutableString stringWithCapacity: 42];
+    if (0!= self.arWhere.count || 0 != self.arLike.count) {
+        [whereClause appendFormat:@"\nWHERE %@", [self.arWhere componentsJoinedByString: @"\n"]];
+    }
+
+    /* 生成查询的 LIKE 部分. */
+    NSMutableString * likeClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arLike.count) {
+        if (0 != self.arWhere.count) {
+            [likeClause appendString: @"\nAND"];
+        }
+        
+        [likeClause appendFormat:@" %@", [self.arLike componentsJoinedByString: @"\n"]];
+    }
+    
+    /* 生成查询的 GROUP BY 部分. */
+    NSMutableString * groupbyClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arGroupby.count) {
+        [groupbyClause appendFormat: @"\nGROUP BY %@", [self.arGroupby componentsJoinedByString:@", "]];
+    }
+    
+    /* 生成查询的 HAVING 部分. */
+    NSMutableString * havingClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arHaving.count) {
+        [havingClause appendFormat: @"\nHAVING %@", [self.arHaving componentsJoinedByString: @"\n"]];
+    }
+    
+    /* 生成查询的 ORDER BY 部分. */
+    NSMutableString * orderbyClause = [NSMutableString stringWithCapacity: 42];
+    if (0 != self.arOrderby.count) {
+        // !!!: arOrderby不是已经有说明顺序的字段了嘛?为什么又用self.arOrder?
+        [orderbyClause appendFormat: @"\nORDER BY %@ %@", [self.arOrderby componentsJoinedByString: @", "], [self.arOrder uppercaseString]];
+    }
+    
+    /* 生成查询的 LIMIT 部分. */
+    NSMutableString * limitClause = [NSMutableString stringWithCapacity: 42];
+    if (NSUIntegerMax != self.arLimit) {
+        [limitClause appendFormat: @"\nLIMIT %@, %@", [NSNumber numberWithUnsignedInteger: self.arOffset], [NSNumber numberWithUnsignedInteger: self.arLimit]];
+    }
+    
+    /* 生成完整的 SQL 语句. */
+    // !!!: 有一个BUG:生成的语句,\n可能过多!
+    NSString * sql = [NSString stringWithFormat: @"%@%@%@%@%@%@%@%@%@", selectClause, fromClause, joinClause, whereClause, likeClause, groupbyClause, havingClause, orderbyClause, limitClause];
     return sql;
 }
+
+- (NSString *) YFDBFromTables: (NSArray *) tables
+{
+    return [NSString stringWithFormat: @"(%@)", [tables componentsJoinedByString:@", "]];
+}
+
 @end

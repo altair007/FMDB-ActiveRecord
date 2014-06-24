@@ -154,12 +154,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "566"
-            endingLineNumber = "566"
-            landmarkName = "-YFDBWhere:type:"
+            startingLineNumber = "574"
+            endingLineNumber = "574"
+            landmarkName = "-YFDBCreateAliasFromTable:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "633"
-            endingLineNumber = "633"
+            startingLineNumber = "641"
+            endingLineNumber = "641"
             landmarkName = "-YFDBWhereIn:not:type:"
             landmarkType = "5">
          </BreakpointContent>
@@ -186,11 +186,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "612"
-            endingLineNumber = "612"
+            startingLineNumber = "620"
+            endingLineNumber = "620"
             landmarkName = "-YFDBHasOperator:"
             landmarkType = "5">
          </BreakpointContent>
@@ -202,7 +202,23 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "724"
+            endingLineNumber = "724"
+            landmarkName = "-YFDBLike:type:side:not:"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "716"
@@ -218,27 +234,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "708"
-            endingLineNumber = "708"
-            landmarkName = "-YFDBLike:type:side:not:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "446"
-            endingLineNumber = "446"
+            startingLineNumber = "452"
+            endingLineNumber = "452"
             landmarkName = "-groupBy:"
             landmarkType = "5">
          </BreakpointContent>
@@ -250,11 +250,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "449"
-            endingLineNumber = "449"
+            startingLineNumber = "455"
+            endingLineNumber = "455"
             landmarkName = "-groupBy:"
             landmarkType = "5">
          </BreakpointContent>
@@ -266,11 +266,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "745"
-            endingLineNumber = "745"
+            startingLineNumber = "753"
+            endingLineNumber = "753"
             landmarkName = "-YFDBHaving:type:"
             landmarkType = "5">
          </BreakpointContent>
@@ -282,11 +282,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425275473.746699"
+            timestampString = "425291657.106141"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "744"
-            endingLineNumber = "744"
+            startingLineNumber = "752"
+            endingLineNumber = "752"
             landmarkName = "-YFDBHaving:type:"
             landmarkType = "5">
          </BreakpointContent>
@@ -298,43 +298,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/AppDelegate/YFAppDelegate.m"
-            timestampString = "425275143.938273"
+            timestampString = "425292339.482417"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "-application:didFinishLaunchingWithOptions:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FMDB-ActiveRecord/Class/AppDelegate/YFAppDelegate.m"
-            timestampString = "425275142.258259"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "62"
-            endingLineNumber = "62"
-            landmarkName = "-application:didFinishLaunchingWithOptions:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FMDB-ActiveRecord/Class/AppDelegate/YFAppDelegate.m"
-            timestampString = "425275721.204819"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "57"
-            endingLineNumber = "57"
+            startingLineNumber = "34"
+            endingLineNumber = "34"
             landmarkName = "-application:didFinishLaunchingWithOptions:"
             landmarkType = "5">
          </BreakpointContent>

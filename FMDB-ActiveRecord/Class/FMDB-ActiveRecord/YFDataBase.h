@@ -12,6 +12,8 @@
 // !!!:可能的优化:把字符串相关的私有工具方法,放到NSString的一个类目里.
 // !!!:用YFDB翻译一个入门教程.或者课堂上的DEMO.
 // !!!:将自己的工程升级至YFDB.
+// !!!:感觉没必要支持缓存操作机制!
+// !!!:移除所有一次性逻辑.
 
 /**
  *  支持Active Record模式的数据库类.
@@ -28,6 +30,7 @@
  */
 // !!!: 统一使用"字段, 字段, 字段"语法,而不是数组语法@[字段,字段,字段]?统一修改一下.
 // !!!: 或许应进行容错设置,即使用户进行了转义,也可以!还有where相关的方法,也是如此!
+// !!!: 能让生成的sql语句,尽可能规范.
 - (YFDataBase *) select: (NSString *) field;
 
 /**
@@ -294,8 +297,8 @@
 /**
  *  设置 LIMIT 值.
  *
- *  @param limit  limit 值.
- *  @param offset offset 值.
+ *  @param limit  查询的限制行数.
+ *  @param offset 偏移值.
  *
  *  @return 实例对象自身.
  */
@@ -305,7 +308,7 @@
 /**
  *  设置 LIMIT 值.
  *
- *  @param limit  limit 值.
+ *  @param limit  查询的限制行数.
  *
  *  @return 实例对象自身.
  */
@@ -314,7 +317,7 @@
 /**
  *  设置 OFFSET 值.
  *
- *  @param offset offset 值.
+ *  @param offset 偏移值.
  *
  *  @return 实例对象自身.
  */
