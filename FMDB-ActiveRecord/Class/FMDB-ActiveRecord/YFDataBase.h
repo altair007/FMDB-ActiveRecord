@@ -403,4 +403,20 @@
  */
 - (FMResultSet *) getWhere: (NSString *) table
                      where: (NSDictionary *) where;
+
+//!!!:临时跳转	public function insert_batch($table = '', $set = NULL)
+// !!!:临时跳转.	public function set_insert_batch($key, $value = '', $escape = TRUE)
+// !!!:迭代至此!
+// !!!: 我觉得用insert替代上面两个方法.
+/**
+ *  编译并执行 INSERT 查询.
+ *
+ *  @param table 用于插入数据的表.
+ *  @param set   字典,以字段为key,以要设置的值为value.
+ *
+ *  @return YES,成功;NO,势必.
+ */
+- (BOOL) insert: (NSString *) table
+            set: (NSDictionary *) set;
+
 @end

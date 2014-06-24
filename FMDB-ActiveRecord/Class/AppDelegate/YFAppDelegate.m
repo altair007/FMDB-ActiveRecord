@@ -38,7 +38,15 @@
 //    }
 //    [self showAlertViewWithMessage: db.lastErrorMessage];
     
-    [db getWhere: @"YFDBPerson" where:@{@"intAge >":@"100"} limit: 3 offset:0];
+//    NSString * str = [db YFDBInsert: @"YFDBPerson"
+//                               keys: @[@"pkName", @"intAge"]
+//                             values: @[@"'颜风'", @"'18'"]];
+//    
+//    [db getWhere: @"YFDBPerson" where:@{@"intAge >":@"100"} limit: 3 offset:0];
+//    BOOL b = [db insert: @"YFDBPerson" set: @{@"pkName": @"jayChou", @"pkName": [NSNumber numberWithUnsignedInteger: 42]}];
+//    
+    
+    [db YFDBSetInsertBatch: @[@{@"A":@"a1", @"B": @"b1", @"C":@"c1"}, @{@"B":@"b2", @"A": @"a2", @"C":@"c2"}, @{@"C":@"c3", @"B": @"b3", @"A":@"a3"}]];
     
     [self showAlertViewWithMessage: db.lastErrorMessage];
     

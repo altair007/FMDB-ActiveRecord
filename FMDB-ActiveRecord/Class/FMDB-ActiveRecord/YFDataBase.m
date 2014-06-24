@@ -32,6 +32,7 @@
 @property (assign, nonatomic)     NSString*    arOrder; //!!!:似乎没有存在价值.
 @property (retain, nonatomic) NSMutableArray * arOrderby;
 @property (retain, nonatomic) NSMutableDictionary * arSet;
+@property (retain, nonatomic) NSMutableArray * arSetBatch; //!!!:临时添加的属性,因为批量插入时,必须用arset数组.暂时替代.
 @property (retain, nonatomic) NSMutableArray * arWherein;
 @property (retain, nonatomic) NSMutableArray * arStoreArray; //!!!:似乎没有存在价值.
 
@@ -192,6 +193,34 @@
 // !!!: 仅被调用一次,没必要写成方法.
 - (NSString *) YFDBFromTables: (NSArray *) tables;
 
+/**
+ *  根据提供的数据生成一个 INSERT 子句.
+ *
+ *  @param table  表名.
+ *  @param keys   用于插入的键.
+ *  @param values 用于插入的值.
+ *
+ *  @return INSERT 子句.
+ */
+- (NSString *) YFDBInsert: (NSString *) table
+                     keys: (NSArray *) keys
+                   values: (NSArray *) values;
+
+/**
+ *  重置 ACTIVE RECORD "写"的值.
+ */
+- (void) YFDBResetWrite;
+
+/**
+ *  支持设置用于批量插入的键值对.
+ *
+ *  @param batch 数组,存储用于一个或多个用于插入数据的字典.
+ *
+ *  @return 实例对象自身.
+ */
+// !!!:如此频繁地返回实例对象自身,真的合适吗?
+- (YFDataBase *) YFDBSetInsertBatch: (NSArray *) batch;
+
 @end
 
 @implementation YFDataBase
@@ -218,6 +247,7 @@
         self.arOrder    = @"";
         self.arOrderby  = [NSMutableArray arrayWithCapacity: 42];
         self.arSet      = [NSMutableDictionary dictionaryWithCapacity: 42];
+        self.arSetBatch = [NSMutableArray arrayWithCapacity: 42];
         self.arWherein = [NSMutableArray arrayWithCapacity: 42];
         self.arStoreArray = [NSMutableArray arrayWithCapacity: 42];
         
@@ -250,6 +280,7 @@
     self.arOrder    = nil;
     self.arOrderby  = nil;
     self.arSet      = nil;
+    self.arSetBatch = nil;
     self.arWherein = nil;
     self.arStoreArray = nil;
     
@@ -544,7 +575,7 @@
 - (YFDataBase *) set: (NSDictionary *) set
 {
     [set enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        [self.arSet setObject: obj forKey: key];
+        [self.arSet setObject: [self YFDBEscape: obj] forKey: key];
     }];
     return self;
 }
@@ -639,13 +670,40 @@
     return [self getWhere: table where: where limit: NSUIntegerMax offset:0];
 }
 
+- (BOOL) insert: (NSString *) table
+            set: (NSDictionary *) set
+{
+    if (nil != set) {
+        [self set: set];
+    }
+    
+    if (0 == self.arSet.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    NSString * sql = [self YFDBInsert: table keys: [self.arSet allKeys] values: [self.arSet allValues]];
+    [self YFDBResetWrite];
+    
+    BOOL result  = [self executeUpdate: sql];
+    
+    return result;
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
                              type: (NSString *) type
 {
     if (YES != [field isKindOfClass: [NSString class]] || YES == [field isEqualToString:@""]) {
-        // !!!:无法匹配语法
+        // !!!:无法匹配语法 或许可以直接返回nil.
 //        $this->display_error('db_invalid_query');
     }
     
@@ -1023,6 +1081,65 @@
 - (NSString *) YFDBFromTables: (NSArray *) tables
 {
     return [NSString stringWithFormat: @"(%@)", [tables componentsJoinedByString:@", "]];
+}
+
+- (NSString *) YFDBInsert: (NSString *) table
+                     keys: (NSArray *) keys
+                   values: (NSArray *) values
+{
+    NSString * insertClause = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES (%@)", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
+    return insertClause;
+}
+                      
+- (void) YFDBResetWrite
+{
+    NSDictionary * resetItems = @{@"arSet": [NSMutableDictionary dictionaryWithCapacity: 42],
+                                  @"arFrom": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arWhere": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arLike": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arOrderby": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arKeys": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arLimit": [NSNumber numberWithUnsignedInteger: NSUIntegerMax],
+                                  @"arOrder": @""
+                                  };
+    
+    return [self YFDBResetRun: resetItems];
+}
+
+- (YFDataBase *) YFDBSetInsertBatch: (NSArray *) batch
+{
+    if (nil == batch) {
+        return self;
+    }
+    
+    NSArray * keys = [[(NSDictionary *)batch[0] allKeys] sortedArrayUsingComparator:^NSComparisonResult(NSString * obj1, NSString * obj2) {
+        return [obj1 compare: obj2];
+    }];
+    
+    for (NSDictionary * dict in batch) {
+        NSArray * keysTemp = [[dict allKeys] sortedArrayUsingComparator:^NSComparisonResult(NSString * obj1, NSString * obj2) {
+            return [obj1 compare: obj2];
+        }];
+        
+        if (YES != [keys isEqualToArray: keysTemp]) {
+            // ???:此处为何插入一个空数组.
+            [self.arSetBatch addObject: @[]];
+            return self;
+        }
+        
+        NSMutableArray * clean = [NSMutableArray arrayWithCapacity: 42];
+        [keys enumerateObjectsUsingBlock:^(id key, NSUInteger idx, BOOL *stop) {
+            [clean addObject: [self YFDBEscape: [dict objectForKey: key]]];
+        }];
+        
+        [self.arSetBatch addObject: [NSString stringWithFormat:@"(%@)", [clean componentsJoinedByString: @", "]]];
+    }
+    
+    [keys enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [self.arKeys addObject: obj];
+    }];
+    
+    return self;
 }
 
 @end
