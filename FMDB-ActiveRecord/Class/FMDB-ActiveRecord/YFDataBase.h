@@ -305,6 +305,7 @@
 - (YFDataBase *) limit: (NSUInteger) limit
                 offset: (NSUInteger) offset;
 
+// !!!:感觉没必要提供limit: 方法.
 /**
  *  设置 LIMIT 值.
  *
@@ -361,5 +362,45 @@
  */
 - (FMResultSet *) get;
 
-//!!!:迭代至此!	public function count_all_results($table = '')
+/**
+ *  产生并执行一个计算查询结果数目的查询.
+ *
+ *  @param table 表名,多个表名,请用 ',' 符号分隔.
+ *
+ *  @return 查询结果的数目.
+ */
+- (NSUInteger) countAllResults: (NSString *) table;
+
+/**
+ *  计算查询结果的数目.
+ *
+ *  @return 查询结果的数目.
+ */
+- (NSUInteger) countAllResults;
+
+/**
+ *  支持往查询中直接添加WHERE子句,查询的限制行数和偏移值.
+ *
+ *  @param table  表名,多个表名,请用 ',' 符合分隔.
+ *  @param where  一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *  @param limit  查询的限制行数.
+ *  @param offset 偏移值.
+ *
+ *  @return 查询结果.
+ */
+- (FMResultSet *) getWhere: (NSString *) table
+                     where: (NSDictionary *) where
+                     limit: (NSUInteger) limit
+                    offset: (NSUInteger) offset;
+
+/**
+ *  支持往查询中直接添加WHERE子句.
+ *
+ *  @param table  表名,多个表名,请用 ',' 符合分隔.
+ *  @param where  一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *
+ *  @return 查询结果.
+ */
+- (FMResultSet *) getWhere: (NSString *) table
+                     where: (NSDictionary *) where;
 @end

@@ -22,7 +22,7 @@
 {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     // Override point for customization after application launch.
-    self.window.backgroundColor = [UIColor blueColor];
+    self.window.backgroundColor = [UIColor grayColor];
     
     /* 测试数据库 */
     YFDataBase * db = [YFDataBase databaseWithPath: @"/tmp/tmp.sqlite"];
@@ -30,12 +30,15 @@
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
 
-    FMResultSet * result = [db get:@"YFDBPerson"];
-    while ([result next]) {
-        NSString * name = [result stringForColumn: @"pkName"];
-        NSUInteger age = [result intForColumn: @"intAge"];
-        [self showAlertViewWithMessage: [name stringByAppendingFormat:@"%@", [NSNumber numberWithUnsignedInteger: age]]];
-    }
+//    FMResultSet * result = [db get:@"YFDBPerson"];
+//    while ([result next]) {
+//        NSString * name = [result stringForColumn: @"pkName"];
+//        NSUInteger age = [result intForColumn: @"intAge"];
+//        [self showAlertViewWithMessage: [name stringByAppendingFormat:@"%@", [NSNumber numberWithUnsignedInteger: age]]];
+//    }
+//    [self showAlertViewWithMessage: db.lastErrorMessage];
+    
+    [db getWhere: @"YFDBPerson" where:@{@"intAge >":@"100"} limit: 3 offset:0];
     
     [self showAlertViewWithMessage: db.lastErrorMessage];
     

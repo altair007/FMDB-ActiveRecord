@@ -175,6 +175,15 @@
 /**
  *  编译 SELECT 语句.
  *
+ *  @param  selectOverride 覆盖SELECT子句的内容.
+ *
+ *  @return SELECT 语句.
+ */
+- (NSString *) YFDBCompileSelect: (NSString *) selectOverride;
+
+/**
+ *  编译 SELECT 语句.
+ *
  *  @return SELECT 语句.
  */
 - (NSString *) YFDBCompileSelect;
@@ -260,12 +269,12 @@
 
 - (YFDataBase *)select: (NSString *) field
 {
-    NSArray * fields = [(NSString *)select componentsSeparatedByString:@","];
+    NSArray * fields = [(NSString *)field componentsSeparatedByString:@","];
     
     [fields enumerateObjectsUsingBlock:^(NSString * val, NSUInteger idx, BOOL *stop) {
         val = [self YFDBTrim: val];
 
-        if (NO == [val isEqualToString: @""]) {
+        if (YES != [val isEqualToString: @""]) {
             [self.arSelect      addObject: val];
             
             if (YES == self.arCaching) {
@@ -370,11 +379,11 @@
         type = @"";
     }
     
-    if (NO == [type isEqualToString: @""]) {
+    if (YES != [type isEqualToString: @""]) {
         type = [type uppercaseString];
         
         // ???:以下几种,sqlite都支持吗?
-        if (NO == [@[@"LEFT", @"RIGHT", @"OUTER", @"INNER", @"LEFT OUTER", @"RIGHT OUTER"] containsObject: type]) {
+        if (YES != [@[@"LEFT", @"RIGHT", @"OUTER", @"INNER", @"LEFT OUTER", @"RIGHT OUTER"] containsObject: type]) {
             type = @"";
         }
         
@@ -495,7 +504,7 @@
     
     if (nil == orderbyStatement) {
         if (YES ==  [[self YFDBTrim: direction] isEqualToString: @""]  &&
-            NO == [@[@"ASC", @"DESC"] containsObject: direction]) { //!!!: 此处将允许direction为@"",但是如此得到的结果,将依赖于数据库的默认排序顺序!
+            YES != [@[@"ASC", @"DESC"] containsObject: direction]) { //!!!: 此处将允许direction为@"",但是如此得到的结果,将依赖于数据库的默认排序顺序!
             // !!!:移除self的arOrder或者dierection变量声明为枚举,才可以彻底解决此混乱!
             direction = @"ASC";
         }
@@ -544,7 +553,7 @@
                 limit: (NSUInteger) limit
                offset: (NSUInteger) offset
 {
-    if (nil != table && NO == [table isEqual: @""]) {
+    if (nil != table && YES != [table isEqual: @""]) {
         [self from: table];
     }
     
@@ -569,19 +578,80 @@
 {
     return [self get: nil limit: NSUIntegerMax offset:0];
 }
+
+- (NSUInteger) countAllResults: (NSString *) table
+{
+    if (nil != table ||
+        YES != [table isEqualToString: @""]) {
+        [self from: table];
+    }
+    
+    NSString * sql = [self YFDBCompileSelect: @"SELECT COUNT(*) AS 'numrows'"];
+    [self YFDBResetSelect];
+    
+    FMResultSet * result = [self executeQuery: sql];
+    
+    if (0 == result.columnCount) {
+        return 0;
+    }
+    
+    NSUInteger count = 0;
+    while ([result next]) {
+        count = [result unsignedLongLongIntForColumn: @"numrows"];
+    };
+
+    return count;
+}
+
+- (NSUInteger) countAllResults
+{
+    return [self countAllResults: nil];
+}
+
+- (FMResultSet *) getWhere: (NSString *) table
+                     where: (NSDictionary *) where
+                     limit: (NSUInteger) limit
+                    offset: (NSUInteger) offset
+{
+    if (nil != table &&
+        YES != [table isEqualToString: @""]) {
+        [self from: table];
+    }
+    
+    if (nil != where) {
+        [self where: where];
+    }
+    
+    if (NSUIntegerMax != limit) {
+        [self limit: limit offset: offset];
+    }
+    
+    NSString * sql = [self YFDBCompileSelect];
+    [self YFDBResetSelect];
+    
+    FMResultSet * result = [self executeQuery: sql];
+    return result;
+}
+
+- (FMResultSet *) getWhere: (NSString *) table
+                     where: (NSDictionary *) where
+{
+    return [self getWhere: table where: where limit: NSUIntegerMax offset:0];
+}
+
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
                              type: (NSString *) type
 {
-    if (NO == [field isKindOfClass: [NSString class]] || YES == [field isEqualToString:@""]) {
+    if (YES != [field isKindOfClass: [NSString class]] || YES == [field isEqualToString:@""]) {
         // !!!:无法匹配语法
 //        $this->display_error('db_invalid_query');
     }
     
     type = [type uppercaseString];
     
-    if (NO == [@[@"MAX", @"MIN", @"AVG", @"SUM"] containsObject: type]) {
+    if (YES != [@[@"MAX", @"MIN", @"AVG", @"SUM"] containsObject: type]) {
         // !!!:无法匹配语法
 //        show_error('Invalid function type: '.$type);
     }
@@ -624,7 +694,7 @@
             prefix = @"";
         }
         
-        if (NO == [self YFDBHasOperator: key]) {
+        if (YES != [self YFDBHasOperator: key]) {
             NSString * operator = @" =";
             
             if ([NSNull null] == obj) {
@@ -683,7 +753,7 @@
     value = [valuesTemp componentsJoinedByString: @","];
     
     NSString * not = @"NOT";
-    if (NO == isNot) {
+    if (YES != isNot) {
         not = @"";
     }
     
@@ -774,7 +844,7 @@
             prefix = @"";
         }
         
-        if (NO == [self YFDBHasOperator: key]) {
+        if (YES != [self YFDBHasOperator: key]) {
             key = [key stringByAppendingString: @" = "];
         }
         
@@ -815,7 +885,7 @@
         
         value = [NSMutableArray arrayWithCapacity: 42];
         [cacheValue enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            if (NO == [value containsObject: obj]) {
+            if (YES != [value containsObject: obj]) {
                 [value addObject: obj];
             }
         }];
@@ -828,7 +898,7 @@
 - (void) YFDBResetRun: (NSDictionary *) resetItems
 {
     [resetItems enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        if (NO == [self.arStoreArray containsObject: key]) {
+        if (YES != [self.arStoreArray containsObject: key]) {
             [self setValue: obj forKey: key];
         }
     }];
@@ -854,28 +924,37 @@
     return [self YFDBResetRun: resetItems];
 }
 
-- (NSString *) YFDBCompileSelect
+- (NSString *) YFDBCompileSelect: (NSString *) selectOverride
 {
-    NSMutableString * selectClause = [NSMutableString stringWithString:@"SELECT"];
-    
     // 将缓存内容与当前语句合并.
     [self YFDBMergeCache];
     
     /* 生成查询的 SELECT 部分. */
-    if (YES == self.arDistinct) {
-        [selectClause appendString: @" DISTINCT"];
+    NSMutableString * selectClause = nil;
+    
+    if (nil != selectOverride &&
+        YES != [selectOverride isEqualToString: @""]) {
+        selectClause = [NSMutableString stringWithString: selectOverride];
     }
     
-    NSString * selectClauseSegments = nil;
-    if (0 == self.arSelect.count) {
-        selectClauseSegments = @"*";
+    if (nil == selectClause) {
+        selectClause = [NSMutableString stringWithString:@"SELECT"];
+        
+        if (YES == self.arDistinct) {
+            [selectClause appendString: @" DISTINCT"];
+        }
+        
+        NSString * selectClauseSegments = nil;
+        if (0 == self.arSelect.count) {
+            selectClauseSegments = @"*";
+        }
+        
+        if (nil == selectClauseSegments) {
+            selectClauseSegments = [self.arSelect componentsJoinedByString: @", "];
+        }
+        
+        [selectClause appendFormat: @" %@", selectClauseSegments];
     }
-    
-    if (nil == selectClauseSegments) {
-        selectClauseSegments = [self.arSelect componentsJoinedByString: @", "];
-    }
-    
-    [selectClause appendFormat: @" %@", selectClauseSegments];
     
     /* 生成查询的 FROM 部分. */
     NSMutableString * fromClause = [NSMutableString stringWithCapacity: 42];
@@ -895,7 +974,7 @@
     if (0!= self.arWhere.count || 0 != self.arLike.count) {
         [whereClause appendFormat:@"\nWHERE %@", [self.arWhere componentsJoinedByString: @"\n"]];
     }
-
+    
     /* 生成查询的 LIKE 部分. */
     NSMutableString * likeClause = [NSMutableString stringWithCapacity: 42];
     if (0 != self.arLike.count) {
@@ -935,6 +1014,10 @@
     // !!!: 有一个BUG:生成的语句,\n可能过多!
     NSString * sql = [NSString stringWithFormat: @"%@%@%@%@%@%@%@%@%@", selectClause, fromClause, joinClause, whereClause, likeClause, groupbyClause, havingClause, orderbyClause, limitClause];
     return sql;
+}
+- (NSString *) YFDBCompileSelect
+{
+    return [self YFDBCompileSelect: nil];
 }
 
 - (NSString *) YFDBFromTables: (NSArray *) tables
