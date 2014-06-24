@@ -697,6 +697,11 @@
     
     return result;
 }
+
+- (BOOL) insert: (NSString *) table
+{
+    return [self insert: table set: nil];
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
