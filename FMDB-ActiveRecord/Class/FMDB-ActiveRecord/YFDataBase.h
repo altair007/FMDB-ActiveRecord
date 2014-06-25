@@ -466,5 +466,61 @@
 - (BOOL) replaceBatch: (NSString *) table
                   set: (NSArray *)  batch;
 
-//!!!:临时跳转.迭代至此!	public function update($table = '', $set = NULL, $where = NULL, $limit = NULL)
+/**
+ *  编译并执行 UPDATE 查询.
+ *
+ *  @param table 用于检索数据的表.
+ *  @param set   字典,存储用于更新的数据.
+ *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *  @param limit 偏移值.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+// !!!: 真心感觉,没必要使用limit参数,在插入时.
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set
+          where: (NSDictionary *) where
+          limit: (NSUInteger) limit;
+
+/**
+ *  编译并执行 UPDATE 查询.
+ *
+ *  @param table 用于检索数据的表.
+ *  @param set   字典,存储用于更新的数据.
+ *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set
+          where: (NSDictionary *) where;
+
+/**
+ *  编译并执行 UPDATE 查询.
+ *
+ *  @param table 用于检索数据的表.
+ *  @param set   字典,存储用于更新的数据.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set;
+
+/**
+ *  编译并执行 UPDATE 查询.
+ *
+ *  @param table 用于检索数据的表.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+- (BOOL) update: (NSString *) table;
+
+/**
+ *  编译并执行 UPDATE 查询.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+- (BOOL) update;
+
+//!!!:临时跳出.	public function update_batch($table = '', $set = NULL, $index = NULL)
 @end

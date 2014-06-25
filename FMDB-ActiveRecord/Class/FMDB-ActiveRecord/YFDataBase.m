@@ -277,7 +277,7 @@
                     where: (NSArray *) where
                   orderby: (NSArray *) orderby
                     limit: (NSUInteger) limit;
-
+//!!!:迭代至此!	public function set_update_batch($key, $index = '', $escape = TRUE)
 @end
 
 @implementation YFDataBase
@@ -730,6 +730,8 @@
 - (BOOL) insertBatch: (NSString *) table
                  set: (NSArray *)  batch
 {
+    // !!!: 不需要合并缓存?
+    
     if (nil != batch) {
         [self YFDBSetInsertBatch: batch];
     }
@@ -770,6 +772,8 @@
 - (BOOL) insert: (NSString *) table
             set: (NSDictionary *) set
 {
+    // !!!:插入操作不需要合并缓冲内容?
+    
     if (nil != set) {
         [self set: set];
     }
@@ -871,6 +875,68 @@
     [self YFDBResetWrite];
     
     return YES;
+}
+
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set
+          where: (NSDictionary *) where
+          limit: (NSUInteger) limit
+{
+    // 将缓存内容与当前语句合并.
+    [self YFDBMergeCache];
+    
+    if (nil != set) {
+        [self set: set];
+    }
+    
+    if (0 == self.arSet.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    if (nil != where) {
+        [self where: where];
+    }
+
+    if (NSUIntegerMax != limit) {
+        [self limit: limit];
+    }
+    
+    NSString * sql = [self YFDBUpdate: table values: self.arSet where: self.arWhere orderby: self.arOrderby limit: self.arLimit];
+    [self YFDBResetWrite];
+    
+    return [self executeUpdate: sql];
+}
+
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set
+          where: (NSDictionary *) where
+{
+    return [self update: table set: set where: where limit: NSUIntegerMax];
+}
+
+- (BOOL) update: (NSString *) table
+            set: (NSDictionary *) set
+{
+    return [self update: table set: set where: nil limit: NSUIntegerMax];
+}
+
+- (BOOL) update: (NSString *) table
+{
+    return [self update: table set: nil where: nil limit: NSUIntegerMax];
+}
+
+- (BOOL) update
+{
+    return [self update: nil set: nil where: nil limit: NSUIntegerMax];
 }
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field

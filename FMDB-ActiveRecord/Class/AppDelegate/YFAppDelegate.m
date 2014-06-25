@@ -59,11 +59,12 @@
     
 //    BOOL b = [db replaceBatch: @"YFDBPersons" set: @[@{@"pkName": @"桂纶镁", @"intAge": [NSNumber numberWithUnsignedInteger: 212]}, @{@"pkName": @"昆凌", @"intAge": [NSNumber numberWithUnsignedInteger: 12123]}]];
 
-    NSString * str =  [db YFDBUpdate: @"YFDBPersons"
-                           values: @{@"pkName":@"'昆凌'"}
-                            where: @[@"pkName = '桂纶镁'", @"intAge = '212'"]
-                          orderby: nil
-                            limit: NSUIntegerMax];
+//    NSString * str =  [db YFDBUpdate: @"YFDBPersons"
+//                           values: @{@"pkName":@"'昆凌'"}
+//                            where: @[@"pkName = '桂纶镁'", @"intAge = '212'"]
+//                          orderby: nil
+//                            limit: NSUIntegerMax];
+    BOOL b =  [db update: @"YFDBPersons" set: @{@"pkName":@"杰伦"} where:@{@"txtLove":@"B"}];
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
     [db close];
