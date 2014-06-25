@@ -41,13 +41,29 @@
 //    NSString * str = [db YFDBInsert: @"YFDBPerson"
 //                               keys: @[@"pkName", @"intAge"]
 //                             values: @[@"'颜风'", @"'18'"]];
-//    
+//
 //    [db getWhere: @"YFDBPerson" where:@{@"intAge >":@"100"} limit: 3 offset:0];
 //    BOOL b = [db insert: @"YFDBPerson" set: @{@"pkName": @"jayChou", @"pkName": [NSNumber numberWithUnsignedInteger: 42]}];
 //    
     
-    [db YFDBSetInsertBatch: @[@{@"A":@"a1", @"B": @"b1", @"C":@"c1"}, @{@"B":@"b2", @"A": @"a2", @"C":@"c2"}, @{@"C":@"c3", @"B": @"b3", @"A":@"a3"}]];
+//    [db YFDBSetInsertBatch: @[@{@"A":@"a1", @"B": @"b1", @"C":@"c1"}, @{@"B":@"b2", @"A": @"a2", @"C":@"c2"}, @{@"C":@"c3", @"B": @"b3", @"A":@"a3"}]];
     
+//    BOOL b = [db insertBatch: @"YFDBPersons" set: @[@{@"pkName": @"桂纶镁", @"intAge": [NSNumber numberWithUnsignedInteger: 10]}, @{@"pkName": @"昆凌", @"intAge": [NSNumber numberWithUnsignedInteger: 10]}]];
+    
+//    NSString * str = [db YFDBReplaceBatch: @"YFDBPersons"
+//                                    keys: @[@"pkName", @"intAge"]
+//                                   values: @[@"('颜风', '21')", @"('Jay', '32')"]];
+    
+//    BOOL b = [db replace:@"YFDBPersons"
+//                             set:@{@"pkName": @"周杰伦", @"intAge": @"111"}];
+    
+//    BOOL b = [db replaceBatch: @"YFDBPersons" set: @[@{@"pkName": @"桂纶镁", @"intAge": [NSNumber numberWithUnsignedInteger: 212]}, @{@"pkName": @"昆凌", @"intAge": [NSNumber numberWithUnsignedInteger: 12123]}]];
+
+    NSString * str =  [db YFDBUpdate: @"YFDBPersons"
+                           values: @{@"pkName":@"'昆凌'"}
+                            where: @[@"pkName = '桂纶镁'", @"intAge = '212'"]
+                          orderby: nil
+                            limit: NSUIntegerMax];
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
     [db close];

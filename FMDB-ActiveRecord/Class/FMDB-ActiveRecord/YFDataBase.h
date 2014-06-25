@@ -405,19 +405,16 @@
                      where: (NSDictionary *) where;
 
 /**
- *  <#Description#>
+ *  编译批量插入的查询语句并执行查询.
  *
- *  @param table <#table description#>
- *  @param batch <#batch description#>
+ *  @param table 用于检索数据的表.
+ *  @param batch 数组,存储用于一个或多个用于插入数据的字典.
  *
- *  @return <#return value description#>
+ *  @return YES,执行成功;NO,执行失败.
  */
 - (BOOL) insertBatch: (NSString *) table
                  set: (NSArray *)  batch;
 
-
-//!!!:临时跳转	public function insert_batch($table = '', $set = NULL)
-// !!!:迭代至此!方法,先模拟 _insertBatch
 /**
  *  编译并执行 INSERT 查询.
  *
@@ -438,4 +435,36 @@
  */
 - (BOOL) insert: (NSString *) table;
 
+/**
+ *  编译并执行 REPLACE 查询.
+ *
+ *  @param table 用于替换数据的表.
+ *  @param set   字典,以字段为key,以要设置的值为value.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) replace: (NSString *) table
+             set: (NSDictionary *) set;
+
+/**
+ *  编译并执行 REPLACE 查询.
+ *
+ *  @param table 用于替换数据的表.
+ *
+ *  @return YES,成功;NO,失败.
+ */
+- (BOOL) replace: (NSString *) table;
+
+/**
+ *  编译批量替换的查询语句并执行查询.
+ *
+ *  @param table 用于检索数据的表.
+ *  @param batch 数组,存储用于一个或多个用于插入数据的字典.
+ *
+ *  @return YES,执行成功;NO,执行失败.
+ */
+- (BOOL) replaceBatch: (NSString *) table
+                  set: (NSArray *)  batch;
+
+//!!!:临时跳转.迭代至此!	public function update($table = '', $set = NULL, $where = NULL, $limit = NULL)
 @end

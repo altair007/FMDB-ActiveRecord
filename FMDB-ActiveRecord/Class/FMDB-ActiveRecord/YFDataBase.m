@@ -207,19 +207,76 @@
                    values: (NSArray *) values;
 
 /**
+ *  根据提供的数据生成一个 INSERT 子句, 用于批量插入.
+ *
+ *  @param table  表名.
+ *  @param keys   用于插入的键.
+ *  @param values 用于插入的值.
+ *
+ *  @return INSERT 子句.
+ */
+// !!!:此方法的逻辑是模拟出来的,php中找不到这个方法:_insert_bath:
+- (NSString *) YFDBInsertBatch: (NSString *) table
+                          keys: (NSArray *) keys
+                        values: (NSArray *) values;
+
+/**
  *  重置 ACTIVE RECORD "写"的值.
  */
 - (void) YFDBResetWrite;
 
 /**
- *  支持设置用于批量插入的键值对.
+ *  支持设置用于批量插入或替换的键值对.
  *
- *  @param batch 数组,存储用于一个或多个用于插入数据的字典.
+ *  @param batch 数组,存储用于一个或多个用于插入或替换数据的字典.
  *
  *  @return 实例对象自身.
  */
 // !!!:如此频繁地返回实例对象自身,真的合适吗?
 - (YFDataBase *) YFDBSetInsertBatch: (NSArray *) batch;
+
+/**
+ *  根据提供的数据生成一个 REPLACE 子句.
+ *
+ *  @param table  表名.
+ *  @param keys   用于替换的键.
+ *  @param values 用于替换的值.
+ *
+ *  @return INSERT 子句.
+ */
+- (NSString *) YFDBReplace: (NSString *) table
+                      keys: (NSArray *) keys
+                    values: (NSArray *) values;
+
+/**
+ *  根据提供的数据生成一个 REPLACE 子句, 用于批量插入.
+ *
+ *  @param table  表名.
+ *  @param keys   用于替换的键.
+ *  @param values 用于替换的值.
+ *
+ *  @return INSERT 子句.
+ */
+- (NSString *) YFDBReplaceBatch: (NSString *) table
+                           keys: (NSArray *) keys
+                         values: (NSArray *) values;
+
+/**
+ *  根据提供的数据生成一个 UPDATE 子句.
+ *
+ *  @param table   表名.
+ *  @param values  用于UPDATE的数据.
+ *  @param where   where子句.
+ *  @param orderby orderby子句.
+ *  @param limit   limit子句.
+ *
+ *  @return 一个 UPDATE 子句.
+ */
+- (NSString *) YFDBUpdate: (NSString *) table
+                   values: (NSDictionary *) values
+                    where: (NSArray *) where
+                  orderby: (NSArray *) orderby
+                    limit: (NSUInteger) limit;
 
 @end
 
@@ -670,6 +727,46 @@
     return [self getWhere: table where: where limit: NSUIntegerMax offset:0];
 }
 
+- (BOOL) insertBatch: (NSString *) table
+                 set: (NSArray *)  batch
+{
+    if (nil != batch) {
+        [self YFDBSetInsertBatch: batch];
+    }
+    
+    if (0 == self.arSetBatch.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    // 批处理.
+    NSUInteger maxInsert = 100; // 单次允许的最大插入数据的条数.
+    for (NSUInteger i = 0, total = self.arSetBatch.count;  i < total;  i += maxInsert) {
+        NSUInteger length = maxInsert;
+        if (total < i + length) {
+            length = total - i;
+        }
+        NSRange range = NSMakeRange( i, length);
+        
+        NSString * sql = [self YFDBInsertBatch: table keys: self.arKeys values: [self.arSetBatch subarrayWithRange: range]];
+        if (YES != [self executeUpdate: sql]) {
+            return NO;
+        }
+    }
+    
+    [self YFDBResetWrite];
+    
+    return YES;
+}
+
 - (BOOL) insert: (NSString *) table
             set: (NSDictionary *) set
 {
@@ -701,6 +798,79 @@
 - (BOOL) insert: (NSString *) table
 {
     return [self insert: table set: nil];
+}
+
+- (BOOL) replace: (NSString *) table
+             set: (NSDictionary *) set
+{
+    if (nil != set) {
+        [self set: set];
+    }
+    
+    if (0 == self.arSet.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    NSString * sql = [self YFDBReplace: table keys: [self.arSet allKeys] values: [self.arSet allValues]];
+    [self YFDBResetWrite];
+    
+    BOOL result  = [self executeUpdate: sql];
+    
+    return result;
+}
+
+- (BOOL) replace: (NSString *) table
+{
+    return [self replace: table set: nil];
+}
+
+- (BOOL) replaceBatch: (NSString *) table
+                  set: (NSArray *)  batch
+{
+    if (nil != batch) {
+        [self YFDBSetInsertBatch: batch];
+    }
+    
+    if (0 == self.arSetBatch.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    // 批处理.
+    NSUInteger maxInsert = 100; // 单次允许的最大插入数据的条数.
+    for (NSUInteger i = 0, total = self.arSetBatch.count;  i < total;  i += maxInsert) {
+        NSUInteger length = maxInsert;
+        if (total < i + length) {
+            length = total - i;
+        }
+        NSRange range = NSMakeRange( i, length);
+        
+        NSString * sql = [self YFDBReplaceBatch: table keys: self.arKeys values: [self.arSetBatch subarrayWithRange: range]];
+        if (YES != [self executeUpdate: sql]) {
+            return NO;
+        }
+    }
+    
+    [self YFDBResetWrite];
+    
+    return YES;
 }
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
@@ -1095,7 +1265,15 @@
     NSString * insertClause = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES (%@)", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
     return insertClause;
 }
-                      
+
+- (NSString *) YFDBInsertBatch: (NSString *) table
+                          keys: (NSArray *) keys
+                        values: (NSArray *) values
+{
+    NSString * insertClause = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES %@", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
+    return insertClause;
+}
+
 - (void) YFDBResetWrite
 {
     NSDictionary * resetItems = @{@"arSet": [NSMutableDictionary dictionaryWithCapacity: 42],
@@ -1146,5 +1324,64 @@
     
     return self;
 }
+
+- (NSString *) YFDBReplace: (NSString *) table
+                      keys: (NSArray *) keys
+                    values: (NSArray *) values
+{
+    NSString * replaceClause = [NSString stringWithFormat: @"REPLACE INTO %@ (%@) VALUES (%@)", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
+    return replaceClause;
+}
+
+- (NSString *) YFDBReplaceBatch: (NSString *) table
+                           keys: (NSArray *) keys
+                         values: (NSArray *) values
+{
+    NSString * replaceClause = [NSString stringWithFormat: @"REPLACE INTO %@ (%@) VALUES %@", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
+    return replaceClause;
+}
+
+// !!!: 更新时提供order和limit参数,有什么意义?sqlite好像不支持!
+- (NSString *) YFDBUpdate: (NSString *) table
+                   values: (NSDictionary *) values
+                    where: (NSArray *) where
+                  orderby: (NSArray *) orderby
+                    limit: (NSUInteger) limit
+{
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        return nil;
+    }
+    
+    NSMutableArray * valstr = [NSMutableArray arrayWithCapacity: 42];
+    [values enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [valstr addObject: [NSString stringWithFormat: @"%@ = %@", key, obj]];
+    }];
+    
+    NSMutableString * updateClause = [NSMutableString stringWithFormat: @"UPDATE %@ SET %@", table, [valstr componentsJoinedByString: @", "]];
+    
+    NSMutableString * limitClause = [NSMutableString stringWithCapacity: 42];
+    if (NSUIntegerMax != limit) {
+        [limitClause appendFormat: @"LIMIT %lu", limit];
+    }
+    
+    NSMutableString * orderbyClause = [NSMutableString stringWithCapacity: 42];
+    if (nil != orderby &&
+        0 != orderby.count) {
+        // ???:orderby 可以有多个排序依据?
+        [orderbyClause appendFormat:  @"ORDER BY %@", [orderby componentsJoinedByString: @", "]];
+    }
+    
+    NSMutableString * whereClause = [NSMutableString stringWithCapacity:42];
+    if (nil != where &&
+        0 != where.count) {
+        [whereClause appendFormat: @"WHERE %@", [where componentsJoinedByString: @" "]];
+    }
+    
+    [updateClause appendFormat: @" %@ %@ %@", whereClause, orderbyClause, limitClause];
+    
+    return updateClause;
+}
+
 
 @end
