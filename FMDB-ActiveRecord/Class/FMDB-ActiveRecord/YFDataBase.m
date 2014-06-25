@@ -300,9 +300,25 @@
  *  @return UPDATE 子句.
  */
 - (NSString *) YFDBUpdate: (NSString *) table
-                         batch: (NSArray*) sets
-                        index: (NSString *) index
-                        where: (NSArray *) where;
+                    batch: (NSArray*) sets
+                    index: (NSString *) index
+                    where: (NSArray *) where;
+
+/**
+ *  依据提供的数据生成一个 DELETE 子句.
+ *
+ *  @param table 表名.
+ *  @param where WHERE 子句.
+ *  @param like  LIKE子句
+ *  @param limit 查询的限制行数.
+ *
+ *  @return DELETE 子句.
+ */
+- (NSString *) YFDBDelete: (NSString *) table
+                    where: (NSArray *) where
+                     like: (NSArray *) like
+                    limit: (NSUInteger) limit;
+
 @end
 
 @implementation YFDataBase
@@ -1007,6 +1023,23 @@
     [self YFDBResetWrite];
     return YES;
 }
+
+- (BOOL) emptyTable: (NSString *) table
+{
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    NSString * sql = [self YFDBDelete: table where: nil like: nil limit: NSUIntegerMax];
+    [self YFDBResetWrite];
+    
+    return [self executeUpdate: sql];
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
@@ -1582,5 +1615,31 @@
     NSString * updateClause = [NSString stringWithFormat: @"UPDATE %@\n%@\n%@", table, setClause, whereClause];
     
     return updateClause;
+}
+
+- (NSString *) YFDBDelete: (NSString *) table
+                    where: (NSArray *) where
+                     like: (NSArray *) like
+                    limit: (NSUInteger) limit
+{
+    NSMutableString * conditions = [NSMutableString stringWithCapacity: 42];
+    
+    if (0 != where.count ||
+        0 != like.count) {
+        [conditions appendFormat: @"\nWHERE %@", [self.arWhere componentsJoinedByString: @"\n"]];
+        
+        if (0 != where.count && 0 != like.count) {
+            [conditions appendString: @" AND "];
+        }
+        [conditions appendFormat: @"%@", [like componentsJoinedByString: @"\n"]];
+    }
+    
+    NSMutableString * limitSegmet = [NSMutableString stringWithCapacity: 42];
+    if (NSUIntegerMax != limit) {
+        [limitSegmet appendFormat: @" LIMIT %lu", limit];
+    }
+    
+    NSString * deleteClause = [NSString stringWithFormat: @"DELETE FROM %@ %@ %@", table, conditions, limitSegmet];
+    return deleteClause;
 }
 @end

@@ -76,7 +76,13 @@
 //                 index: @"pkName"
 //                 where: nil];
     
-    [db update: @"YFDBPersons" batch: @[@{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"},@{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}] index: @"pkName"];
+//    [db update: @"YFDBPersons" batch: @[@{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"},@{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}] index: @"pkName"];
+    
+//    NSString * str = [db YFDBDelete: @"TEST"
+//                              where: nil
+//                               like: nil
+//                              limit: NSUIntegerMax];
+    BOOL b =  [db emptyTable: @"TEST"];
     
     [self showAlertViewWithMessage: db.lastErrorMessage];
     

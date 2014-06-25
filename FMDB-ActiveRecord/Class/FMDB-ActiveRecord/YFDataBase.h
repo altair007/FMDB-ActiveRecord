@@ -536,6 +536,13 @@
                batch: (NSArray *) batch
                index: (NSString *) index;
 
-
+/**
+ *  编译一个 DELETE 语句,并执行 "DELETE FROM table".
+ *
+ *  @param table 要清空的表.
+ *
+ *  @return YES, 执行成功;NO, 执行失败.
+ */
+- (BOOL) emptyTable: (NSString *) table;
 
 @end
