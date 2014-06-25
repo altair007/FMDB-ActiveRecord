@@ -216,8 +216,8 @@
  *  @return INSERT 子句.
  */
 // !!!:此方法的逻辑是模拟出来的,php中找不到这个方法:_insert_bath:
-- (NSString *) YFDBInsertBatch: (NSString *) table
-                          keys: (NSArray *) keys
+- (NSString *) YFDBInsert: (NSString *) table
+                          batch: (NSArray *) keys
                         values: (NSArray *) values;
 
 /**
@@ -277,7 +277,32 @@
                     where: (NSArray *) where
                   orderby: (NSArray *) orderby
                     limit: (NSUInteger) limit;
-//!!!:迭代至此!	public function set_update_batch($key, $index = '', $escape = TRUE)
+
+/**
+ *  支持设置用于批量更新的键值对.
+ *
+ *  @param batch 数组,存储用于一个或多个用于更新数据的字典.
+ *  @param index 索引,即决定数据字典中用于决定更新位置的字段.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) YFDBSetUpdateBatch: (NSArray *) batch
+                              index: (NSString *) index;
+
+/**
+ *  根据提供的数据生成一个 UPDATE 子句, 用于批量更新.
+ *
+ *  @param table 表名.
+ *  @param sets  用于 UPDATE 的数据.
+ *  @param index 索引,即决定数据字典中用于决定更新位置的字段.
+ *  @param where WHERE 子句.
+ *
+ *  @return UPDATE 子句.
+ */
+- (NSString *) YFDBUpdate: (NSString *) table
+                         batch: (NSArray*) sets
+                        index: (NSString *) index
+                        where: (NSArray *) where;
 @end
 
 @implementation YFDataBase
@@ -727,8 +752,8 @@
     return [self getWhere: table where: where limit: NSUIntegerMax offset:0];
 }
 
-- (BOOL) insertBatch: (NSString *) table
-                 set: (NSArray *)  batch
+- (BOOL) insert: (NSString *) table
+                 batch: (NSArray *)  batch
 {
     // !!!: 不需要合并缓存?
     
@@ -758,7 +783,7 @@
         }
         NSRange range = NSMakeRange( i, length);
         
-        NSString * sql = [self YFDBInsertBatch: table keys: self.arKeys values: [self.arSetBatch subarrayWithRange: range]];
+        NSString * sql = [self YFDBInsert: table batch: self.arKeys values: [self.arSetBatch subarrayWithRange: range]];
         if (YES != [self executeUpdate: sql]) {
             return NO;
         }
@@ -837,8 +862,8 @@
     return [self replace: table set: nil];
 }
 
-- (BOOL) replaceBatch: (NSString *) table
-                  set: (NSArray *)  batch
+- (BOOL) replace: (NSString *) table
+                  batch: (NSArray *)  batch
 {
     if (nil != batch) {
         [self YFDBSetInsertBatch: batch];
@@ -937,6 +962,50 @@
 - (BOOL) update
 {
     return [self update: nil set: nil where: nil limit: NSUIntegerMax];
+}
+
+- (BOOL) update: (NSString *) table
+               batch: (NSArray *) batch
+               index: (NSString *) index
+{
+    // 将缓存内容与当前语句合并.
+    [self YFDBMergeCache];
+    
+    if (nil != batch) {
+        [self YFDBSetUpdateBatch: batch index: index];
+    }
+    
+    if (0 == self.arSetBatch.count) {
+        return NO;
+    }
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    // 批处理.
+    NSUInteger maxInsert = 100; // 单次允许的最大插入数据的条数.
+    for (NSUInteger i = 0, total = self.arSetBatch.count;  i < total;  i += maxInsert) {
+        NSUInteger length = maxInsert;
+        if (total < i + length) {
+            length = total - i;
+        }
+        NSRange range = NSMakeRange( i, length);
+        
+        NSString * sql = [self YFDBUpdate: table batch: [self.arSetBatch subarrayWithRange: range] index: index where: self.arWhere];
+        
+        if (YES != [self executeUpdate: sql]) {
+            return NO;
+        }
+    }
+    
+    [self YFDBResetWrite];
+    return YES;
 }
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
@@ -1332,8 +1401,8 @@
     return insertClause;
 }
 
-- (NSString *) YFDBInsertBatch: (NSString *) table
-                          keys: (NSArray *) keys
+- (NSString *) YFDBInsert: (NSString *) table
+                          batch: (NSArray *) keys
                         values: (NSArray *) values
 {
     NSString * insertClause = [NSString stringWithFormat: @"INSERT INTO %@ (%@) VALUES %@", table, [keys componentsJoinedByString: @", "], [values componentsJoinedByString: @", "]];
@@ -1449,5 +1518,69 @@
     return updateClause;
 }
 
+- (YFDataBase *) YFDBSetUpdateBatch: (NSArray *) batch
+                              index: (NSString *) index
+{
+    if (nil == batch && YES != [batch isKindOfClass: [NSArray class]]) {
+        return self;
+    }
+    
+    for (NSDictionary * data in batch) {
+        if (YES != [[data allKeys] containsObject: index]) {
+            return self;
+        }
 
+        NSMutableDictionary * clean = [NSMutableDictionary dictionaryWithCapacity: 42];
+        [data enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            [clean setObject: [self YFDBEscape: obj] forKey: key];
+        }];
+        
+        [self.arSetBatch addObject: clean];
+    }
+    
+    return self;
+}
+
+- (NSString *) YFDBUpdate: (NSString *) table
+                         batch: (NSArray*) sets
+                        index: (NSString *) index
+                        where: (NSArray *) where
+{
+    NSMutableDictionary * setSegmentsDict = [NSMutableDictionary dictionaryWithCapacity: 42];
+    NSMutableArray * inSegmentsArray = [NSMutableArray arrayWithCapacity: 42];
+    [sets enumerateObjectsUsingBlock:^(NSDictionary * set, NSUInteger idx, BOOL *stop) {
+        [set enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            if (YES == [index isEqualToString: key]) {
+                [inSegmentsArray addObject: obj];
+                return;
+            }
+            
+            if (nil == [setSegmentsDict objectForKey: key]) {
+                [setSegmentsDict setObject: [NSMutableString stringWithCapacity: 42] forKey: key];
+            }
+            
+            [[setSegmentsDict objectForKey: key] appendFormat: @"WHEN %@ = %@ THEN %@\n", index, [set objectForKey: index], obj];
+            
+        }];
+    }];
+    
+    NSMutableArray * setSegmentsArray = [NSMutableArray arrayWithCapacity: 42];
+    [setSegmentsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [setSegmentsArray addObject: [NSString stringWithFormat: @"%@ = CASE \n%@\n ELSE %@ END", key, obj, key]];
+    }];
+    
+    NSMutableString * setClause = [NSMutableString stringWithFormat: @"SET %@", [setSegmentsArray componentsJoinedByString: @",\n"]];
+    
+    NSString * inClause = [NSString stringWithFormat: @"%@ IN (%@)", index, [inSegmentsArray componentsJoinedByString: @", "]];
+    
+    NSString * whereClause = [NSString stringWithFormat: @"WHERE %@", inClause];
+    if (nil != where &&
+        0 != where.count) {
+        whereClause = [NSString stringWithFormat: @"WHERE %@ %@", [where componentsJoinedByString: @" "], inClause];
+    }
+    
+    NSString * updateClause = [NSString stringWithFormat: @"UPDATE %@\n%@\n%@", table, setClause, whereClause];
+    
+    return updateClause;
+}
 @end

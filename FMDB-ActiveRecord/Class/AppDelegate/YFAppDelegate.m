@@ -64,7 +64,20 @@
 //                            where: @[@"pkName = '桂纶镁'", @"intAge = '212'"]
 //                          orderby: nil
 //                            limit: NSUIntegerMax];
-    BOOL b =  [db update: @"YFDBPersons" set: @{@"pkName":@"杰伦"} where:@{@"txtLove":@"B"}];
+//    BOOL b =  [db update: @"YFDBPersons" set: @{@"pkName":@"杰伦"} where:@{@"txtLove":@"B"}];
+    
+//    NSString * str = [db YFDBSetUpdateBatch: @[@{@"pkName": @"周杰伦", @"txtLove": @"昆凌"},
+//  @{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}]
+//                                      index: @"pkName"];
+    
+//    NSString * str = [db YFDBUpdate: @"YFDBPersons"
+//                  batch: @[@{@"pkName": @"'周杰伦'", @"txtLove": @"'昆凌'"},
+//                          @{@"pkName": @"'桂纶镁'", @"txtLove": @"'叶湘伦'"}]
+//                 index: @"pkName"
+//                 where: nil];
+    
+    [db update: @"YFDBPersons" batch: @[@{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"},@{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}] index: @"pkName"];
+    
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
     [db close];

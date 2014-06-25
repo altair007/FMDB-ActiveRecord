@@ -14,6 +14,7 @@
 // !!!:将自己的工程升级至YFDB.
 // !!!:感觉没必要支持缓存操作机制!
 // !!!:移除所有一次性逻辑.
+// !!!:考虑一种极限情况:将SELECT语句获取的数据,用于INSERT,此时 INSERT会不会错误转义了SELECT语句,而不能使 SELECT 语句正常执行.
 
 /**
  *  支持Active Record模式的数据库类.
@@ -412,8 +413,8 @@
  *
  *  @return YES,执行成功;NO,执行失败.
  */
-- (BOOL) insertBatch: (NSString *) table
-                 set: (NSArray *)  batch;
+- (BOOL) insert: (NSString *) table
+                 batch: (NSArray *)  batch;
 
 /**
  *  编译并执行 INSERT 查询.
@@ -463,8 +464,8 @@
  *
  *  @return YES,执行成功;NO,执行失败.
  */
-- (BOOL) replaceBatch: (NSString *) table
-                  set: (NSArray *)  batch;
+- (BOOL) replace: (NSString *) table
+                  batch: (NSArray *)  batch;
 
 /**
  *  编译并执行 UPDATE 查询.
@@ -522,5 +523,19 @@
  */
 - (BOOL) update;
 
-//!!!:临时跳出.	public function update_batch($table = '', $set = NULL, $index = NULL)
+/**
+ *  编译并批量执行 UPDATE 查询.
+ *
+ *  @param table 用于检索数据的表.
+ *  @param batch 数组,存储用于一个或多个用于更新数据的字典.
+ *  @param index 索引,即决定数据字典中用于决定更新位置的字段.
+ *
+ *  @return YES, 执行成功;NO, 执行失败.
+ */
+- (BOOL) update: (NSString *) table
+               batch: (NSArray *) batch
+               index: (NSString *) index;
+
+
+
 @end
