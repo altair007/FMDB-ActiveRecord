@@ -8,11 +8,37 @@
 
 #import "FMDatabase.h"
 
-// !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
-// !!!:用YFDB翻译一个入门教程.或者课堂上的DEMO.
-// !!!:考虑一种极限情况:将SELECT语句获取的数据,用于INSERT,此时 INSERT会不会错误转义了SELECT语句,而不能使 SELECT 语句正常执行.
-// !!!: 添加一些额外的 常用  AR 功能.
 
+// !!!:用YFDB翻译一个入门教程.
+// !!!: 添加一些额外的 常用  AR 功能.
+// !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
+
+/**
+ *  sqltie支持的join类型.
+ */
+typedef enum {
+    YFDBLeftOuterJoin, //!< 左外连接.
+    YFDBInnerJoin //!< 内连接.
+} YFDBJoinType;
+
+/**
+ *  like子句的通配符添加位置.
+ */
+typedef enum{
+    YFDBLikeSideNone, //!< 不添加通配符.
+    YFDBLikeSideBefore,//!< 在前面添加通配符 % .
+    YFDBLikeSideAfter,//!< 在后面添加通配符 % .
+    YFDBLikeSideBoth //!< 在两端添加通配符 % .
+} YFDBLikeSide;
+
+/**
+ *  排序方向.
+ */
+typedef enum{
+    YFDBOrderRandom, //!< 随机顺序.
+    YFDBOrderAsc, //!< 升序排列.
+    YFDBOrderDesc //!< 降序排列.
+} YFDBOrderDirection;
 /**
  *  支持Active Record模式的数据库类.
  */
@@ -137,7 +163,7 @@
  */
 - (YFDataBase *) join: (NSString *) table
              condtion: (NSString *) condtion
-                 type: (NSString *) type;
+                 type: (YFDBJoinType) joinType;
 
 /**
  *  生成一个查询的 JOIN 部分.
@@ -209,12 +235,12 @@
  *  产生查询的 %LIKE% 部分.如果有多个,使用 AND 连接.
  *
  *  @param like  一个字典,已字段名为key,以要匹配的字符串为value.
- *  @param side  通配位置,可选: @"none", @"before", @"alter", @"both".
+ *  @param side  通配位置,可选: @"none", @"before", @"after", @"both".
  *
  *  @return 实例对象自身.
  */
 - (YFDataBase *) like: (NSDictionary *) like
-                 side: (NSString *) side;
+                 side: (YFDBLikeSide) side;
 
 /**
  *  产生查询的 NOT LIKE 部分.如果有多个,使用 AND 连接.
@@ -225,7 +251,7 @@
  *  @return 实例对象自身.
  */
 - (YFDataBase *) notLike: (NSDictionary *) like
-                    side: (NSString *) side;
+                    side: (YFDBLikeSide) side;
 
 /**
  *  产生查询的 %LIKE% 部分.如果有多个,使用 OR 连接.
@@ -236,7 +262,7 @@
  *  @return 实例对象自身.
  */
 - (YFDataBase *) OrLike: (NSDictionary *) like
-                    side: (NSString *) side;
+                   side: (YFDBLikeSide) side;
 
 /**
  *  产生查询的 NOT LIKE 部分.如果有多个,使用 OR 连接.
@@ -247,7 +273,7 @@
  *  @return 实例对象自身.
  */
 - (YFDataBase *) OrNotLike: (NSDictionary *) like
-                      side: (NSString *) side;
+                      side: (YFDBLikeSide) side;
 
 /**
  *  产生查询的 GROUP BY 部分.
@@ -284,9 +310,8 @@
  *
  *  @return 实例对象自身.
  */
-// !!!: direction参数应该写到枚举里.
 - (YFDataBase *) orderBy: (NSString *) orderBy
-               direction: (NSString *) direction;
+               direction: (YFDBOrderDirection) direction;
 
 /**
  *  设置 LIMIT 值.
@@ -406,7 +431,7 @@
  *  @return YES,执行成功;NO,执行失败.
  */
 - (BOOL) insert: (NSString *) table
-                 batch: (NSArray *)  batch;
+          batch: (NSArray *)  batch;
 
 /**
  *  编译并执行 INSERT 查询.
@@ -457,7 +482,7 @@
  *  @return YES,执行成功;NO,执行失败.
  */
 - (BOOL) replace: (NSString *) table
-                  batch: (NSArray *)  batch;
+           batch: (NSArray *)  batch;
 
 /**
  *  编译并执行 UPDATE 查询.
@@ -509,8 +534,8 @@
  *  @return YES, 执行成功;NO, 执行失败.
  */
 - (BOOL) update: (NSString *) table
-               batch: (NSArray *) batch
-               index: (NSString *) index;
+          batch: (NSArray *) batch
+          index: (NSString *) index;
 
 /**
  *  编译一个 DELETE 语句,并执行 "DELETE FROM table".
@@ -532,7 +557,7 @@
  */
 - (BOOL) remove: (NSString *) table
           where: (NSDictionary *) where
-      resetData: (BOOL) resetData;
+      resetData: (BOOL) reset;
 
 /**
  *  开始 ACTIVE RECORD 缓存.

@@ -31,7 +31,8 @@
     }
     
 //    BOOL success = [db insert: @"YFDBPersons" set:@{@"pkName": @"周杰伦1", @"txtLove": @"昆凌1"}];
-    BOOL success = [db insert: @"YFDBPersons" batch: @[@{@"pkName": @"周杰伦3", @"txtLove": @"昆凌3"}, @{@"pkName": @"周杰伦4", @"txtLove": @"昆凌4"}]];
+    BOOL success = NO;
+    success = [db insert: @"YFDBPersons" batch: @[@{@"pkName": @"周杰伦5", @"txtLove": @"昆凌5"}, @{@"pkName": @"周杰伦6", @"txtLove": @"昆凌6"}]];
     
     if (YES != success) {
         [self showAlertViewWithMessage: db.lastErrorMessage];

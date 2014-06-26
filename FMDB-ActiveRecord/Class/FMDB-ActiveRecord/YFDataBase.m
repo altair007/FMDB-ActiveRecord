@@ -11,38 +11,34 @@
 @interface YFDataBase ()
 
 #pragma mark - 私有属性.
-// !!!:给变量加一些注释.
-@property (retain, nonatomic) NSMutableArray * arSelect;
-@property (assign, nonatomic)           BOOL   arDistinct;
-@property (retain, nonatomic) NSMutableArray * arFrom;
-@property (retain, nonatomic) NSMutableArray * arJoin;
-@property (retain, nonatomic) NSMutableArray * arWhere;
-@property (retain, nonatomic) NSMutableArray * arLike;
-@property (retain, nonatomic) NSMutableArray * arGroupby;
-@property (retain, nonatomic) NSMutableArray * arHaving;
-@property (retain, nonatomic) NSMutableArray * arKeys;
-// !!!:使用有符号性或许更合适,要不然无法分辨.又或者使用最大正整数常量初始化.
-@property (assign, nonatomic)     NSUInteger   arLimit;
-@property (assign, nonatomic)     NSUInteger   arOffset;
-@property (assign, nonatomic)     NSString*    arOrder; //!!!:似乎没有存在价值.
-@property (retain, nonatomic) NSMutableArray * arOrderby;
-@property (retain, nonatomic) NSMutableDictionary * arSet;
-@property (retain, nonatomic) NSMutableArray * arSetBatch; //!!!:临时添加的属性,因为批量插入时,必须用arset数组.暂时替代.
-@property (retain, nonatomic) NSMutableArray * arWherein;
-@property (retain, nonatomic) NSMutableArray * arStoreArray; //!!!:似乎没有存在价值.
+@property (retain, nonatomic) NSMutableArray * arSelect; //!<  存储 SELECT 子句的信息.
+@property (assign, nonatomic) BOOL   arDistinct; //!< 存储 DISTINCT 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arFrom; //!< 存储 FROM 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arJoin; //!< 存储 JOIN 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arWhere; //!< 存储 WHERE 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arLike; //!< 存储 LIKE 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arGroupby; //!< 存储 GROUPBY 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arHaving; //!< 存储 HAVING 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arKeys; //!< 批量插入时,用于存储 字段 信息.
+@property (assign, nonatomic)     NSUInteger   arLimit; //!<  存储查询的限制行数.
+@property (assign, nonatomic)     NSUInteger   arOffset; //!< 查询偏移值.
+@property (retain, nonatomic) NSMutableArray * arOrderby; //!< 存储 ORDER 子句的信息.
+@property (retain, nonatomic) NSMutableDictionary * arSet; //!< 存储 SET 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arSetBatch; //!< 批量插入时,存储 SET 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arWherein; //!< 存储 IN 子句的相关信息.
 
 // Active Record 缓存属性.
-@property (assign, nonatomic)           BOOL   arCaching;
-@property (retain, nonatomic) NSMutableArray * arCacheExists;
-@property (retain, nonatomic) NSMutableArray * arCacheSelect;
-@property (retain, nonatomic) NSMutableArray * arCacheFrom;
-@property (retain, nonatomic) NSMutableArray * arCacheJoin;
-@property (retain, nonatomic) NSMutableArray * arCacheWhere;
-@property (retain, nonatomic) NSMutableArray * arCacheLike;
-@property (retain, nonatomic) NSMutableArray * arCacheGroupby;
-@property (retain, nonatomic) NSMutableArray * arCacheHaving;
-@property (retain, nonatomic) NSMutableArray * arCacheOrderby;
-@property (retain, nonatomic) NSMutableArray * arCacheSet;
+@property (assign, nonatomic)           BOOL   arCaching; //!< 是否缓存AR操作.
+@property (retain, nonatomic) NSMutableArray * arCacheExists; //!< 存储已经缓存的操作的名称.
+@property (retain, nonatomic) NSMutableArray * arCacheSelect; //!< 缓存 SELECT 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheFrom; //!< 缓存 FROM 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheJoin; //!< 缓存 JOIN 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheWhere; //!< 缓存 WHERE 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheLike; //!< 缓存 LIKE 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheGroupby; //!< 缓存 GROUPBY子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheHaving; //!< 缓存 HAVING 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheOrderby; //!< 缓存 ORDERBY 子句的信息.
+@property (retain, nonatomic) NSMutableArray * arCacheSet; //!< 缓存 SET 子句的信息.
 
 #pragma mark - 私有方法.
 /**
@@ -133,11 +129,9 @@
  *
  *  @return 实例对象自身.
  */
-// !!!:建议把type和side参数声明为枚举.!
-// !!!:建议,预定义参数使用大写形式.如"BEFORE"
 - (YFDataBase *) YFDBLike: (NSDictionary *) like
                      type: (NSString *) type
-                     side: (NSString *) side
+                     side: (YFDBLikeSide) side
                       not: (BOOL) isNot;
 
 /**
@@ -329,12 +323,10 @@
         self.arKeys     = [NSMutableArray arrayWithCapacity: 42];
         self.arLimit    = NSUIntegerMax;
         self.arOffset   = 0;
-        self.arOrder    = @"";
         self.arOrderby  = [NSMutableArray arrayWithCapacity: 42];
         self.arSet      = [NSMutableDictionary dictionaryWithCapacity: 42];
         self.arSetBatch = [NSMutableArray arrayWithCapacity: 42];
         self.arWherein = [NSMutableArray arrayWithCapacity: 42];
-        self.arStoreArray = [NSMutableArray arrayWithCapacity: 42];
         
         self.arCaching = NO;
         self.arCacheExists = [NSMutableArray arrayWithCapacity: 42];
@@ -362,12 +354,10 @@
     self.arGroupby  = nil;
     self.arHaving   = nil;
     self.arKeys     = nil;
-    self.arOrder    = nil;
     self.arOrderby  = nil;
     self.arSet      = nil;
     self.arSetBatch = nil;
     self.arWherein = nil;
-    self.arStoreArray = nil;
     
     self.arCacheExists = nil;
     self.arCacheSelect = nil;
@@ -395,7 +385,7 @@
             
             if (YES == self.arCaching) {
                 [self.arCacheSelect     addObject: val];
-                [self.arCacheExists     addObject: @"select"];//!!!: 为什么不用大写?
+                [self.arCacheExists     addObject: @"SELECT"];
             }
         }
         
@@ -489,20 +479,16 @@
 
 - (YFDataBase *) join: (NSString *) table
              condtion: (NSString *) condtion
-                 type: (NSString *) type
+                 type: (YFDBJoinType) joinType
 {
-    if (nil == type) {
-        type = @"";
+    NSString * type = @"INNER";
+    
+    if (YFDBLeftOuterJoin == joinType) {
+        type = @"LEFT OUTER";
     }
     
-    if (YES != [type isEqualToString: @""]) {
-        type = [type uppercaseString];
-        
-        // ???:以下几种,sqlite都支持吗?
-        if (YES != [@[@"LEFT", @"RIGHT", @"OUTER", @"INNER", @"LEFT OUTER", @"RIGHT OUTER"] containsObject: type]) {
-            type = @"";
-        }
-        
+    if (nil == type) {
+        type = @"";
     }
     
     // 拼接 JOIN 语句.
@@ -521,7 +507,7 @@
 - (YFDataBase *) join: (NSString *) table
              condtion: (NSString *) condtion
 {
-    return [self join: table condtion: condtion type: nil];
+    return [self join: table condtion: condtion type: YFDBInnerJoin];
 }
 
 - (YFDataBase *) where: (NSDictionary *)where
@@ -555,25 +541,25 @@
 }
 
 - (YFDataBase *) like: (NSDictionary *) like
-                 side: (NSString *) side
+                 side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"AND" side: side not: NO];
 }
 
 - (YFDataBase *) notLike: (NSDictionary *) like
-                    side: (NSString *) side
+                    side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"AND" side: side not: YES];
 }
 
 - (YFDataBase *) OrLike: (NSDictionary *) like
-                   side: (NSString *) side
+                   side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"OR" side: side not: NO];
 }
 
 - (YFDataBase *) OrNotLike: (NSDictionary *) like
-                      side: (NSString *) side
+                      side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"OR" side: side not: YES];
 }
@@ -609,24 +595,20 @@
 }
 
 - (YFDataBase *) orderBy: (NSString *) orderBy
-               direction: (NSString *) direction
+               direction: (YFDBOrderDirection) direction
 {
     NSString * orderbyStatement = nil;
-    
-    direction = [self YFDBTrim:[direction uppercaseString]] ;
-    if (YES == [direction isEqualToString: @"RANDOM"]) {
+
+    if (YFDBOrderRandom == direction) {
         orderbyStatement = @"RANDOM()";
     }
     
-    if (nil == orderbyStatement) {
-        if (YES ==  [[self YFDBTrim: direction] isEqualToString: @""]  &&
-            YES != [@[@"ASC", @"DESC"] containsObject: direction]) { //!!!: 此处将允许direction为@"",但是如此得到的结果,将依赖于数据库的默认排序顺序!
-            // !!!:移除self的arOrder或者dierection变量声明为枚举,才可以彻底解决此混乱!
-            direction = @"ASC";
-        }
-        
-        orderbyStatement = [NSString stringWithFormat: @"%@ %@", orderBy, direction];
+    NSString * directionStr = @"ASC";
+    if (YFDBOrderDesc == direction) {
+        directionStr = @"DESC";
     }
+    
+    orderbyStatement = [NSString stringWithFormat: @"%@ %@", orderBy, directionStr];
     
     [self.arOrderby addObject: orderbyStatement];
     if (YES == self.arCaching) {
@@ -756,10 +738,8 @@
 }
 
 - (BOOL) insert: (NSString *) table
-                 batch: (NSArray *)  batch
+          batch: (NSArray *)  batch
 {
-    // !!!: 不需要合并缓存?
-    
     if (nil != batch) {
         [self YFDBSetInsertBatch: batch];
     }
@@ -800,8 +780,6 @@
 - (BOOL) insert: (NSString *) table
             set: (NSDictionary *) set
 {
-    // !!!:插入操作不需要合并缓冲内容?
-    
     if (nil != set) {
         [self set: set];
     }
@@ -1018,7 +996,7 @@
 
 - (BOOL) remove: (NSString *) table
           where: (NSDictionary *) where
-      resetData: (BOOL) resetData
+      resetData: (BOOL) reset
 {
     // 将缓存内容与当前语句合并.
     [self YFDBMergeCache];
@@ -1044,7 +1022,7 @@
     
     NSString * sql = [self YFDBDelete: table where: self.arWhere like: self.arLike];
     
-    if (YES == resetData) {
+    if (YES == reset) {
         [self YFDBResetWrite];
     }
     
@@ -1122,8 +1100,6 @@
     type = [type uppercaseString];
     
     [where enumerateKeysAndObjectsUsingBlock:^(NSString * key, id obj, BOOL *stop) {
-        // !!!:是否有必要加上限制:0 == self.arCacheWhere.count.分析下缓存机制,再作判断.
-        // !!!:此处原文是:			$prefix = (count($this->ar_where) == 0 AND count($this->ar_cache_where) == 0) ? '' : $type;
         NSString * prefix = type;
         if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
             prefix = @"";
@@ -1171,7 +1147,6 @@
     return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-// !!!:个人感觉,应该让此方法,自动支持批操作!它是字典,有先天条件.!php很可能是受制于自身的逻辑,未能实现自动对批操作的支持.
 - (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
                          not: (BOOL) isNot
                         type: (NSString *) type
@@ -1192,8 +1167,6 @@
         not = @"";
     }
     
-    // !!!:是否有必要加上限制:0 == self.arCacheWhere.count.分析下缓存机制,再作判断.
-    // !!!:此处原文是:$prefix = (count($this->ar_where) == 0) ? '' : $type;
     NSString * prefix = type;
     if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
         prefix = @"";
@@ -1222,7 +1195,7 @@
 
 - (YFDataBase *) YFDBLike: (NSDictionary *) like
                      type: (NSString *) type
-                     side: (NSString *) side
+                     side: (YFDBLikeSide) side
                       not: (BOOL) isNot
 {
     NSString * not = @"";
@@ -1232,8 +1205,7 @@
     
     [like enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL *stop) {
         NSString * prefix = type;
-        // ???:是否有必要考虑缓存like字段不为空的情况.暂时先考虑.
-        if (0 == self.arLike.count && 0 == self.arCacheLike.count) {
+        if (0 == self.arLike.count) {
             prefix = @"";
         }
         
@@ -1244,15 +1216,15 @@
 
         NSString * value = [NSString stringWithFormat:@"%%%@%%", obj];
         
-        if ([side isEqualToString: @"none"]) {
+        if (YFDBLikeSideNone == side) {
             value = obj;
         }
         
-        if ([side isEqualToString: @"before"]) {
+        if (YFDBLikeSideBefore == side) {
             value = [NSString stringWithFormat: @"%%%@", obj];
         }
         
-        if ([side isEqualToString: @"after"]) {
+        if (YFDBLikeSideAfter == side) {
             value = [NSString stringWithFormat: @"%@%%", obj];
         }
         
@@ -1274,7 +1246,6 @@
 {
     [having enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL *stop) {
         NSString * prefix = type;
-        // !!!:有无必要考虑缓存的self.arCacheHaving.count?
         if (0 == self.arHaving.count && 0 == self.arCacheHaving.count) {
             prefix = @"";
         }
@@ -1303,7 +1274,6 @@
         return;
     }
     
-    // !!!:如果属性与方法的区分策略变更,此处的逻辑也要相应调整.
     [self.arCacheExists enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
         NSString * key = [@"ar" stringByAppendingString: [obj capitalizedString]];
         NSString * cacheKey = [@"arCache" stringByAppendingString: [obj capitalizedString]];
@@ -1331,9 +1301,7 @@
 - (void) YFDBResetRun: (NSDictionary *) resetItems
 {
     [resetItems enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        if (YES != [self.arStoreArray containsObject: key]) {
-            [self setValue: obj forKey: key];
-        }
+        [self setValue: obj forKey: key];
     }];
 }
 
@@ -1350,8 +1318,7 @@
                                   @"arWherein": [NSMutableArray arrayWithCapacity: 42],
                                   @"arDistinct": [NSNumber numberWithBool: NO],
                                   @"arLimit": [NSNumber numberWithUnsignedInteger:0],
-                                  @"arOffset": [NSNumber numberWithUnsignedInteger:0],
-                                  @"arOrder": @""
+                                  @"arOffset": [NSNumber numberWithUnsignedInteger:0]
                                   };
     
     return [self YFDBResetRun: resetItems];
@@ -1432,8 +1399,7 @@
     /* 生成查询的 ORDER BY 部分. */
     NSMutableString * orderbyClause = [NSMutableString stringWithCapacity: 42];
     if (0 != self.arOrderby.count) {
-        // !!!: arOrderby不是已经有说明顺序的字段了嘛?为什么又用self.arOrder?
-        [orderbyClause appendFormat: @"\nORDER BY %@ %@", [self.arOrderby componentsJoinedByString: @", "], [self.arOrder uppercaseString]];
+        [orderbyClause appendFormat: @"\nORDER BY %@", [self.arOrderby componentsJoinedByString: @", "]];
     }
     
     /* 生成查询的 LIMIT 部分. */
@@ -1480,8 +1446,7 @@
                                   @"arLike": [NSMutableArray arrayWithCapacity: 42],
                                   @"arOrderby": [NSMutableArray arrayWithCapacity: 42],
                                   @"arKeys": [NSMutableArray arrayWithCapacity: 42],
-                                  @"arLimit": [NSNumber numberWithUnsignedInteger: NSUIntegerMax],
-                                  @"arOrder": @""
+                                  @"arLimit": [NSNumber numberWithUnsignedInteger: NSUIntegerMax]
                                   };
     
     return [self YFDBResetRun: resetItems];
@@ -1503,8 +1468,6 @@
         }];
         
         if (YES != [keys isEqualToArray: keysTemp]) {
-            // ???:此处为何插入一个空数组.
-            [self.arSetBatch addObject: @[]];
             return self;
         }
         
