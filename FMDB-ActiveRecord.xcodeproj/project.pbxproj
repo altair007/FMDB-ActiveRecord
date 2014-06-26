@@ -42,6 +42,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C21334A7195C65800002A786 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		C2271C181955CB0600779D64 /* YFDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFDataBase.h; sourceTree = "<group>"; };
 		C2271C191955CB0600779D64 /* YFDataBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFDataBase.m; sourceTree = "<group>"; };
 		C2C8FBE919547FCA00FDFDC7 /* FMDB-ActiveRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FMDB-ActiveRecord.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,6 +200,7 @@
 		C2C8FC1F1954806100FDFDC7 /* FMDB-ActiveRecord */ = {
 			isa = PBXGroup;
 			children = (
+				C21334A7195C65800002A786 /* README.md */,
 				C2271C181955CB0600779D64 /* YFDataBase.h */,
 				C2271C191955CB0600779D64 /* YFDataBase.m */,
 			);

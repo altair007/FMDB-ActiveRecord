@@ -12,7 +12,7 @@
 // !!!:用YFDB翻译一个入门教程.
 // !!!: 添加一些额外的 常用  AR 功能.
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
-
+// !!!: 借鉴 FMDB 同时支持 ARC 和 MRC.
 /**
  *  sqltie支持的join类型.
  */
@@ -53,6 +53,13 @@ typedef enum{
  *  @return 实例对象自身.
  */
 - (YFDataBase *) select: (NSString *) field;
+
+/**
+ *  生成一个查询的 SELECT 部分.如果你要查询表中所有的列，可以直接使用这个方法。
+ *
+ *  @return 实例对象自身。
+ */
+- (YFDataBase *) select;
 
 /**
  *  生成一个查询的 SELECT MAX(字段) 部分.
@@ -406,7 +413,7 @@ typedef enum{
  *
  *  @return 查询结果.
  */
-- (FMResultSet *) getWhere: (NSString *) table
+- (FMResultSet *) get: (NSString *) table
                      where: (NSDictionary *) where
                      limit: (NSUInteger) limit
                     offset: (NSUInteger) offset;

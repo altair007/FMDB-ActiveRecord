@@ -394,6 +394,10 @@
     return self;
 }
 
+- (YFDataBase *) select
+{
+    return  [self select: @"*"];
+}
 - (YFDataBase *) selectMax: (NSString *) field
                      alias: (NSString *) alias
 {
@@ -706,7 +710,7 @@
     return [self countAllResults: nil];
 }
 
-- (FMResultSet *) getWhere: (NSString *) table
+- (FMResultSet *) get: (NSString *) table
                      where: (NSDictionary *) where
                      limit: (NSUInteger) limit
                     offset: (NSUInteger) offset
@@ -734,7 +738,7 @@
 - (FMResultSet *) getWhere: (NSString *) table
                      where: (NSDictionary *) where
 {
-    return [self getWhere: table where: where limit: NSUIntegerMax offset:0];
+    return [self get: table where: where limit: NSUIntegerMax offset:0];
 }
 
 - (BOOL) insert: (NSString *) table

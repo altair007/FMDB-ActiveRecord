@@ -31,12 +31,68 @@
     }
     
 //    BOOL success = [db insert: @"YFDBPersons" set:@{@"pkName": @"周杰伦1", @"txtLove": @"昆凌1"}];
-    BOOL success = NO;
-    success = [db insert: @"YFDBPersons" batch: @[@{@"pkName": @"周杰伦5", @"txtLove": @"昆凌5"}, @{@"pkName": @"周杰伦6", @"txtLove": @"昆凌6"}]];
+//    FMResultSet * result = [db get: @"mytable"];
+//    // 生成: SELECT * FROM mytable
+//    
+//    FMResultSet * result = [db get: @"mytable" limit: 10 offset:20];
+//    
+//    // 生成: SELECT * FROM mytable LIMIT 20, 10
     
-    if (YES != success) {
-        [self showAlertViewWithMessage: db.lastErrorMessage];
+//    FMResultSet * result  = [db get: @"mytable"];
+//	while ([result next]) {
+//		// 检索每个记录的值。
+//	}
+//    id idValue = nil;
+//    
+//    FMResultSet * result = [db getWhere: @"mytable" where:@{@"id": idValue}];
+//    [db select];
+//    FMResultSet * result = [db get: @"mytable" limit:1 offset:0];
+//    
+//    // 生成: SELECT title, content, date FROM mytable
+//    [db where: @{@"title": @"B"}];
+    
+    
+//    [db selectSum: @"age"];
+//    FMResultSet * result = [db get: @"members"];
+    // 生成: SELECT SUM(age) as age FROM members
+    
+//    $this->db->select_min('age');
+//    $query = $this->db->get('members');
+//    // 生成: SELECT MIN(age) as age FROM members
+    
+//    $this->db->select_max('age');
+//    $query = $this->db->get('members');
+//    // Produces: SELECT MAX(age) as age FROM members
+//    
+//    $this->db->select_max('age', 'member_age');
+//    $query = $this->db->get('members');
+//    // Produces: SELECT MAX(age) as member_age FROM members
+    
+    [db select: @"title, content, date"];
+    [db from: @"mytable"];
+    FMResultSet * result = [db get];
+    // 生成: SELECT title, content, date FROM mytable
+    
+//    $this->db->select('title, content, date');
+//    $this->db->from('mytable');
+//    $query = $this->db->get();
+//    // 生成: SELECT title, content, date FROM mytable
+    
+    NSMutableString * message = [NSMutableString stringWithCapacity: 42];
+    
+    while ([result next]) {
+        [message appendFormat: @"%@%@%@\n", [result stringForColumnIndex: 0], [result stringForColumnIndex: 1], [result stringForColumnIndex: 2]];
     }
+    
+    [self showAlertViewWithMessage: message];
+    [self showAlertViewWithMessage: db.lastErrorMessage];
+    
+//    BOOL success = NO;
+//    success = [db insert: @"YFDBPersons" batch: @[@{@"pkName": @"周杰伦5", @"intAge": [NSNumber numberWithUnsignedLong: 10]}, @{@"pkName": @"周杰伦6", @"intAge": [NSNumber numberWithUnsignedLong: 10]}]];
+//    
+//    if (YES != success) {
+//        [self showAlertViewWithMessage: db.lastErrorMessage];
+//    }
     
     [db close];
     
