@@ -10,13 +10,8 @@
 
 @interface YFDataBase ()
 
-// !!!:提供对多线程的支持吗?block可以很好地支持多线程的!FMDB支持多线程吗?
-// !!!:优化方向,优化注释.
-// !!!:使用复杂的SQL逻辑测试各个方法.
 #pragma mark - 私有属性.
 // !!!:给变量加一些注释.
-// !!!:此处给属性添加"ar"前缀的目的是为了与方法区分(OC中不得不遵守的原因).有没有更好的策略.比如放到一个字典中,直接以"select"等为键,已一个可变数组为值.
-// !!!:可以直接存储字符串.将子句本身声明为属性.
 @property (retain, nonatomic) NSMutableArray * arSelect;
 @property (assign, nonatomic)           BOOL   arDistinct;
 @property (retain, nonatomic) NSMutableArray * arFrom;
@@ -189,8 +184,6 @@
  */
 - (NSString *) YFDBCompileSelect;
 
-//!!!:方法有点鸡肋,直接存储from子句不就行了.没有必要的转换:字符串-->数组-->字符串.而且,和IN方法的逻辑冲突!
-// !!!: 仅被调用一次,没必要写成方法.
 - (NSString *) YFDBFromTables: (NSArray *) tables;
 
 /**
@@ -215,7 +208,6 @@
  *
  *  @return INSERT 子句.
  */
-// !!!:此方法的逻辑是模拟出来的,php中找不到这个方法:_insert_bath:
 - (NSString *) YFDBInsert: (NSString *) table
                           batch: (NSArray *) keys
                         values: (NSArray *) values;
@@ -232,7 +224,6 @@
  *
  *  @return 实例对象自身.
  */
-// !!!:如此频繁地返回实例对象自身,真的合适吗?
 - (YFDataBase *) YFDBSetInsertBatch: (NSArray *) batch;
 
 /**
@@ -274,9 +265,7 @@
  */
 - (NSString *) YFDBUpdate: (NSString *) table
                    values: (NSDictionary *) values
-                    where: (NSArray *) where
-                  orderby: (NSArray *) orderby
-                    limit: (NSUInteger) limit;
+                    where: (NSArray *) where;
 
 /**
  *  支持设置用于批量更新的键值对.
@@ -310,14 +299,12 @@
  *  @param table 表名.
  *  @param where WHERE 子句.
  *  @param like  LIKE子句
- *  @param limit 查询的限制行数.
  *
  *  @return DELETE 子句.
  */
 - (NSString *) YFDBDelete: (NSString *) table
                     where: (NSArray *) where
-                     like: (NSArray *) like
-                    limit: (NSUInteger) limit;
+                     like: (NSArray *) like;
 
 @end
 
@@ -480,7 +467,7 @@
         
         if (YES == self.arCaching) {
             [self.arCacheFrom addObject: table];
-            [self.arCacheExists addObject: @"from"];
+            [self.arCacheExists addObject: @"FROM"];
         }
         
         return self;
@@ -493,7 +480,7 @@
         
         if (YES == self.arCaching) {
             [self.arCacheFrom addObject: obj];
-            [self.arCacheExists addObject: @"from"];
+            [self.arCacheExists addObject: @"FROM"];
         }
     }];
     
@@ -525,7 +512,7 @@
     
     if (YES == self.arCaching) {
         [self.arCacheJoin addObject: join];
-        [self.arCacheExists addObject: @"join"];
+        [self.arCacheExists addObject: @"JOIN"];
     }
     
     return self;
@@ -604,7 +591,7 @@
         
         if (YES == self.arCaching) {
             [self.arCacheGroupby addObject: obj];
-            [self.arCacheExists addObject: @"groupby"];
+            [self.arCacheExists addObject: @"GROUPBY"];
         }
     }];
     
@@ -644,7 +631,7 @@
     [self.arOrderby addObject: orderbyStatement];
     if (YES == self.arCaching) {
         [self.arCacheOrderby addObject: orderbyStatement];
-        [self.arCacheExists addObject: @"orderby"];
+        [self.arCacheExists addObject: @"ORDERBY"];
     }
     
     return self;
@@ -921,7 +908,6 @@
 - (BOOL) update: (NSString *) table
             set: (NSDictionary *) set
           where: (NSDictionary *) where
-          limit: (NSUInteger) limit
 {
     // 将缓存内容与当前语句合并.
     [self YFDBMergeCache];
@@ -946,12 +932,8 @@
     if (nil != where) {
         [self where: where];
     }
-
-    if (NSUIntegerMax != limit) {
-        [self limit: limit];
-    }
     
-    NSString * sql = [self YFDBUpdate: table values: self.arSet where: self.arWhere orderby: self.arOrderby limit: self.arLimit];
+    NSString * sql = [self YFDBUpdate: table values: self.arSet where: self.arWhere];
     [self YFDBResetWrite];
     
     return [self executeUpdate: sql];
@@ -959,25 +941,18 @@
 
 - (BOOL) update: (NSString *) table
             set: (NSDictionary *) set
-          where: (NSDictionary *) where
 {
-    return [self update: table set: set where: where limit: NSUIntegerMax];
-}
-
-- (BOOL) update: (NSString *) table
-            set: (NSDictionary *) set
-{
-    return [self update: table set: set where: nil limit: NSUIntegerMax];
+    return [self update: table set: set where: nil];
 }
 
 - (BOOL) update: (NSString *) table
 {
-    return [self update: table set: nil where: nil limit: NSUIntegerMax];
+    return [self update: table set: nil where: nil];
 }
 
 - (BOOL) update
 {
-    return [self update: nil set: nil where: nil limit: NSUIntegerMax];
+    return [self update: nil set: nil where: nil];
 }
 
 - (BOOL) update: (NSString *) table
@@ -1035,7 +1010,7 @@
         table = self.arFrom[0];
     }
     
-    NSString * sql = [self YFDBDelete: table where: nil like: nil limit: NSUIntegerMax];
+    NSString * sql = [self YFDBDelete: table where: nil like: nil];
     [self YFDBResetWrite];
     
     return [self executeUpdate: sql];
@@ -1043,7 +1018,6 @@
 
 - (BOOL) remove: (NSString *) table
           where: (NSDictionary *) where
-          limit: (NSUInteger) limit
       resetData: (BOOL) resetData
 {
     // 将缓存内容与当前语句合并.
@@ -1062,17 +1036,13 @@
         [self where: where];
     }
     
-    if (NSUIntegerMax != limit) {
-        [self limit: limit];
-    }
-    
     if (0 == self.arWhere.count &&
         0 == self.arWherein.count &&
         0 == self.arLike.count) {
         return NO;
     }
     
-    NSString * sql = [self YFDBDelete: table where: self.arWhere like: self.arLike limit: self.arLimit];
+    NSString * sql = [self YFDBDelete: table where: self.arWhere like: self.arLike];
     
     if (YES == resetData) {
         [self YFDBResetWrite];
@@ -1112,15 +1082,13 @@
                              type: (NSString *) type
 {
     if (YES != [field isKindOfClass: [NSString class]] || YES == [field isEqualToString:@""]) {
-        // !!!:无法匹配语法 或许可以直接返回nil.
-//        $this->display_error('db_invalid_query');
+        return nil;
     }
     
     type = [type uppercaseString];
     
     if (YES != [@[@"MAX", @"MIN", @"AVG", @"SUM"] containsObject: type]) {
-        // !!!:无法匹配语法
-//        show_error('Invalid function type: '.$type);
+        return nil;
     }
     
     if (nil == alias || [alias isEqualToString: @""]) {
@@ -1133,7 +1101,7 @@
     
     if (YES == self.arCaching) {
         [self.arCacheSelect addObject: sql];
-        [self.arCacheExists addObject: @"select"];
+        [self.arCacheExists addObject: @"SELECT"];
     }
     
     return self;
@@ -1177,7 +1145,7 @@
 
         if (YES == self.arCaching) {
             [self.arCacheWhere addObject: whereSegment];
-            [self.arCacheExists addObject: @"where"];
+            [self.arCacheExists addObject: @"WHERE"];
         }
         
     }];
@@ -1237,7 +1205,7 @@
     
     if (YES == self.arCaching) {
         [self.arCacheWhere addObject: whereIn];
-        [self.arCacheExists addObject: @"where"];
+        [self.arCacheExists addObject: @"WHERE"];
     }
     
     return self;
@@ -1293,7 +1261,7 @@
         [self.arLike addObject: likeStatement];
         if (YES == self.arCaching) {
             [self.arCacheLike addObject: likeStatement];
-            [self.arCacheExists addObject: @"like"];
+            [self.arCacheExists addObject: @"LIKE"];
         }
         
     }];
@@ -1321,7 +1289,7 @@
         [self.arHaving addObject: havingSegment];
         if (YES == self.arCaching) {
             [self.arCacheHaving addObject: havingSegment];
-            [self.arCacheExists addObject: @"having"];
+            [self.arCacheExists addObject: @"HAVING"];
         }
         
     }];
@@ -1337,7 +1305,6 @@
     
     // !!!:如果属性与方法的区分策略变更,此处的逻辑也要相应调整.
     [self.arCacheExists enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
-        // !!!: 可以把类似的逻辑,having位置的值改为大写了!           [self.arCacheExists addObject: @"having"];
         NSString * key = [@"ar" stringByAppendingString: [obj capitalizedString]];
         NSString * cacheKey = [@"arCache" stringByAppendingString: [obj capitalizedString]];
         
@@ -1359,7 +1326,6 @@
         
         [self setValue: value forKey: key];
     }];
-    // !!!:缓存的操作,在何处"重置"?不需要重置?
 }
 
 - (void) YFDBResetRun: (NSDictionary *) resetItems
@@ -1426,7 +1392,6 @@
     /* 生成查询的 FROM 部分. */
     NSMutableString * fromClause = [NSMutableString stringWithCapacity: 42];
     if (0 != self.arFrom.count) {
-        // !!!: 为什么要加'\n'换行,为了美观吗?
         [fromClause appendFormat: @"\nFROM %@", [self YFDBFromTables: self.arFrom]];
     }
     
@@ -1478,7 +1443,6 @@
     }
     
     /* 生成完整的 SQL 语句. */
-    // !!!: 有一个BUG:生成的语句,\n可能过多!
     NSString * sql = [NSString stringWithFormat: @"%@%@%@%@%@%@%@%@%@", selectClause, fromClause, joinClause, whereClause, likeClause, groupbyClause, havingClause, orderbyClause, limitClause];
     return sql;
 }
@@ -1575,12 +1539,9 @@
     return replaceClause;
 }
 
-// !!!: 更新时提供order和limit参数,有什么意义?sqlite好像不支持!
 - (NSString *) YFDBUpdate: (NSString *) table
                    values: (NSDictionary *) values
                     where: (NSArray *) where
-                  orderby: (NSArray *) orderby
-                    limit: (NSUInteger) limit
 {
     if (nil == table ||
         YES == [table isEqualToString: @""]) {
@@ -1594,25 +1555,13 @@
     
     NSMutableString * updateClause = [NSMutableString stringWithFormat: @"UPDATE %@ SET %@", table, [valstr componentsJoinedByString: @", "]];
     
-    NSMutableString * limitClause = [NSMutableString stringWithCapacity: 42];
-    if (NSUIntegerMax != limit) {
-        [limitClause appendFormat: @"LIMIT %lu", limit];
-    }
-
-    NSMutableString * orderbyClause = [NSMutableString stringWithCapacity: 42];
-    if (nil != orderby &&
-        0 != orderby.count) {
-        // ???:orderby 可以有多个排序依据?
-        [orderbyClause appendFormat:  @"ORDER BY %@", [orderby componentsJoinedByString: @", "]];
-    }
-    
     NSMutableString * whereClause = [NSMutableString stringWithCapacity:42];
     if (nil != where &&
         0 != where.count) {
         [whereClause appendFormat: @"WHERE %@", [where componentsJoinedByString: @" "]];
     }
     
-    [updateClause appendFormat: @" %@ %@ %@", whereClause, orderbyClause, limitClause];
+    [updateClause appendFormat: @" %@", whereClause];
     
     return updateClause;
 }
@@ -1686,7 +1635,6 @@
 - (NSString *) YFDBDelete: (NSString *) table
                     where: (NSArray *) where
                      like: (NSArray *) like
-                    limit: (NSUInteger) limit
 {
     NSMutableString * conditions = [NSMutableString stringWithCapacity: 42];
     
@@ -1700,12 +1648,8 @@
         [conditions appendFormat: @"%@", [like componentsJoinedByString: @"\n"]];
     }
     
-    NSMutableString * limitSegmet = [NSMutableString stringWithCapacity: 42];
-    if (NSUIntegerMax != limit) {
-        [limitSegmet appendFormat: @" LIMIT %lu", limit];
-    }
     
-    NSString * deleteClause = [NSString stringWithFormat: @"DELETE FROM %@ %@ %@", table, conditions, limitSegmet];
+    NSString * deleteClause = [NSString stringWithFormat: @"DELETE FROM %@ %@", table, conditions];
     return deleteClause;
 }
 @end

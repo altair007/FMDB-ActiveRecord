@@ -9,12 +9,9 @@
 #import "FMDatabase.h"
 
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
-// !!!:可能的优化:把字符串相关的私有工具方法,放到NSString的一个类目里.
 // !!!:用YFDB翻译一个入门教程.或者课堂上的DEMO.
-// !!!:将自己的工程升级至YFDB.
-// !!!:感觉没必要支持缓存操作机制!
-// !!!:移除所有一次性逻辑.
 // !!!:考虑一种极限情况:将SELECT语句获取的数据,用于INSERT,此时 INSERT会不会错误转义了SELECT语句,而不能使 SELECT 语句正常执行.
+// !!!: 添加一些额外的 常用  AR 功能.
 
 /**
  *  支持Active Record模式的数据库类.
@@ -29,9 +26,6 @@
  *
  *  @return 实例对象自身.
  */
-// !!!: 统一使用"字段, 字段, 字段"语法,而不是数组语法@[字段,字段,字段]?统一修改一下.
-// !!!: 或许应进行容错设置,即使用户进行了转义,也可以!还有where相关的方法,也是如此!
-// !!!: 能让生成的sql语句,尽可能规范.
 - (YFDataBase *) select: (NSString *) field;
 
 /**
@@ -262,7 +256,6 @@
  *
  *  @return 实例对象自身.
  */
-// !!!:by后面的似乎不一定是字段啊!
 - (YFDataBase *) groupBy: (NSString *) by;
 
 /**
@@ -306,7 +299,6 @@
 - (YFDataBase *) limit: (NSUInteger) limit
                 offset: (NSUInteger) offset;
 
-// !!!:感觉没必要提供limit: 方法.
 /**
  *  设置 LIMIT 值.
  *
@@ -473,22 +465,6 @@
  *  @param table 用于检索数据的表.
  *  @param set   字典,存储用于更新的数据.
  *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
- *  @param limit 偏移值.
- *
- *  @return YES,执行成功;NO,执行失败.
- */
-// !!!: 真心感觉,没必要使用limit参数,在插入时.
-- (BOOL) update: (NSString *) table
-            set: (NSDictionary *) set
-          where: (NSDictionary *) where
-          limit: (NSUInteger) limit;
-
-/**
- *  编译并执行 UPDATE 查询.
- *
- *  @param table 用于检索数据的表.
- *  @param set   字典,存储用于更新的数据.
- *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
  *
  *  @return YES,执行成功;NO,执行失败.
  */
@@ -550,15 +526,12 @@
  *
  *  @param table     表名,多个用 ',' 分隔.
  *  @param where     一个字典,以字段或包含操作符的字段为key,以条件值为value.
- *  @param limit     偏移值.
  *  @param resetData 执行成功后是否重置查询操作
  *
  *  @return YES, 执行成功;NO, 执行失败.
  */
-// !!!: 传递并处理偏移值,delete时,没有意义,而且语法报错.(sqlite)
 - (BOOL) remove: (NSString *) table
           where: (NSDictionary *) where
-          limit: (NSUInteger) limit
       resetData: (BOOL) resetData;
 
 /**

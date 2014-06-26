@@ -29,70 +29,13 @@
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
-
-//    FMResultSet * result = [db get:@"YFDBPerson"];
-//    while ([result next]) {
-//        NSString * name = [result stringForColumn: @"pkName"];
-//        NSUInteger age = [result intForColumn: @"intAge"];
-//        [self showAlertViewWithMessage: [name stringByAppendingFormat:@"%@", [NSNumber numberWithUnsignedInteger: age]]];
-//    }
-//    [self showAlertViewWithMessage: db.lastErrorMessage];
     
-//    NSString * str = [db YFDBInsert: @"YFDBPerson"
-//                               keys: @[@"pkName", @"intAge"]
-//                             values: @[@"'颜风'", @"'18'"]];
-//
-//    [db getWhere: @"YFDBPerson" where:@{@"intAge >":@"100"} limit: 3 offset:0];
-//    BOOL b = [db insert: @"YFDBPerson" set: @{@"pkName": @"jayChou", @"pkName": [NSNumber numberWithUnsignedInteger: 42]}];
-//    
+//    BOOL success = [db insert: @"YFDBPersons" set:@{@"pkName": @"周杰伦1", @"txtLove": @"昆凌1"}];
+    BOOL success = [db insert: @"YFDBPersons" batch: @[@{@"pkName": @"周杰伦3", @"txtLove": @"昆凌3"}, @{@"pkName": @"周杰伦4", @"txtLove": @"昆凌4"}]];
     
-//    [db YFDBSetInsertBatch: @[@{@"A":@"a1", @"B": @"b1", @"C":@"c1"}, @{@"B":@"b2", @"A": @"a2", @"C":@"c2"}, @{@"C":@"c3", @"B": @"b3", @"A":@"a3"}]];
-    
-//    BOOL b = [db insertBatch: @"YFDBPersons" set: @[@{@"pkName": @"桂纶镁", @"intAge": [NSNumber numberWithUnsignedInteger: 10]}, @{@"pkName": @"昆凌", @"intAge": [NSNumber numberWithUnsignedInteger: 10]}]];
-    
-//    NSString * str = [db YFDBReplaceBatch: @"YFDBPersons"
-//                                    keys: @[@"pkName", @"intAge"]
-//                                   values: @[@"('颜风', '21')", @"('Jay', '32')"]];
-    
-//    BOOL b = [db replace:@"YFDBPersons"
-//                             set:@{@"pkName": @"周杰伦", @"intAge": @"111"}];
-    
-//    BOOL b = [db replaceBatch: @"YFDBPersons" set: @[@{@"pkName": @"桂纶镁", @"intAge": [NSNumber numberWithUnsignedInteger: 212]}, @{@"pkName": @"昆凌", @"intAge": [NSNumber numberWithUnsignedInteger: 12123]}]];
-
-//    NSString * str =  [db YFDBUpdate: @"YFDBPersons"
-//                           values: @{@"pkName":@"'昆凌'"}
-//                            where: @[@"pkName = '桂纶镁'", @"intAge = '212'"]
-//                          orderby: nil
-//                            limit: NSUIntegerMax];
-//    BOOL b =  [db update: @"YFDBPersons" set: @{@"pkName":@"杰伦"} where:@{@"txtLove":@"B"}];
-    
-//    NSString * str = [db YFDBSetUpdateBatch: @[@{@"pkName": @"周杰伦", @"txtLove": @"昆凌"},
-//  @{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}]
-//                                      index: @"pkName"];
-    
-//    NSString * str = [db YFDBUpdate: @"YFDBPersons"
-//                  batch: @[@{@"pkName": @"'周杰伦'", @"txtLove": @"'昆凌'"},
-//                          @{@"pkName": @"'桂纶镁'", @"txtLove": @"'叶湘伦'"}]
-//                 index: @"pkName"
-//                 where: nil];
-    
-//    [db update: @"YFDBPersons" batch: @[@{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"},@{@"pkName": @"桂纶镁", @"txtLove": @"叶湘伦"}] index: @"pkName"];
-    
-//    NSString * str = [db YFDBDelete: @"TEST"
-//                              where: nil
-//                               like: nil
-//                              limit: NSUIntegerMax];
-//    BOOL b =  [db emptyTable: @"TEST"];
-    
-//    BOOL b = [db remove: @"YFDBPersons" where: @{@"pkName" :@"A"} limit: NSUIntegerMax resetData:YES];
-    
-    [db startCache];
-    [db where: @{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"}];
-    [db stopCache];
-    [db flushCache];
-    
-    
-    [self showAlertViewWithMessage: db.lastErrorMessage];
+    if (YES != success) {
+        [self showAlertViewWithMessage: db.lastErrorMessage];
+    }
     
     [db close];
     
