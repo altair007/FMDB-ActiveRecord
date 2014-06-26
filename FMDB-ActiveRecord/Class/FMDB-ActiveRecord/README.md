@@ -134,22 +134,27 @@ FMResultSet * result = [db get];
 ```
 **说明: 或许你已经想到，查询中的FROM部分也可以在  get: 方法中指定，所以你可以根据自己的喜好来选择使用哪个方法。**
 
-### $this->db->join();
+### join: condtion: type: 
+***
 
-允许你编写查询中的JOIN部分:
+允许你编写查询中的 **JOIN** 部分:
 
-$this->db->select('*');
-$this->db->from('blogs');
-$this->db->join('comments', 'comments.id = blogs.id');
+// !!!: 迭代至此！
+如果你需要指定 JOIN 类型，你
 
-$query = $this->db->get();
-
-// 生成: 
+```
+[db select];
+[db from: @"blogs"];
+[db join: @"comments" condtion: @"comments.id = blogs.id"];
+FMResultSet * result = [db get];
+// 生成:
 // SELECT * FROM blogs
 // JOIN comments ON comments.id = blogs.id
-如果你想要在查询中使用多个连接，可以多次调用本函数。
+```
 
-如果你需要指定 JOIN 的类型，你可以通过本函数的第三个参数来指定。可选项包括：left, right, outer, inner, left outer, 以及 right outer.
+如果你想要在查询中使用多个连接，可以多次向数据库对象发送此消息。
+
+如果你需要指定 JOIN 的类型，你可以使用。
 
 $this->db->join('comments', 'comments.id = blogs.id', 'left');
 

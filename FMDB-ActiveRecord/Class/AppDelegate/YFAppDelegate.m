@@ -68,10 +68,23 @@
 //    $query = $this->db->get('members');
 //    // Produces: SELECT MAX(age) as member_age FROM members
     
-    [db select: @"title, content, date"];
-    [db from: @"mytable"];
+//    [db select: @"title, content, date"];
+//    [db from: @"mytable"];
+//    FMResultSet * result = [db get];
+//    // 生成: SELECT title, content, date FROM mytable
+    
+//    $this->db->select('*');
+//    $this->db->from('blogs');
+//    $this->db->join('comments', 'comments.id = blogs.id');
+//    $query = $this->db->get();
+    
+    [db select];
+    [db from: @"blogs"];
+    [db join: @"comments" condtion: @"comments.id = blogs.id"];
     FMResultSet * result = [db get];
-    // 生成: SELECT title, content, date FROM mytable
+    // 生成:
+    // SELECT * FROM blogs
+    // JOIN comments ON comments.id = blogs.id
     
 //    $this->db->select('title, content, date');
 //    $this->db->from('mytable');
@@ -81,7 +94,7 @@
     NSMutableString * message = [NSMutableString stringWithCapacity: 42];
     
     while ([result next]) {
-        [message appendFormat: @"%@%@%@\n", [result stringForColumnIndex: 0], [result stringForColumnIndex: 1], [result stringForColumnIndex: 2]];
+        [message appendFormat: @"%d\n", [result intForColumnIndex:0]];
     }
     
     [self showAlertViewWithMessage: message];
