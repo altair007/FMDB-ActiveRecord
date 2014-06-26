@@ -545,4 +545,34 @@
  */
 - (BOOL) emptyTable: (NSString *) table;
 
+/**
+ *  编译并执行 DELETE 语句.
+ *
+ *  @param table     表名,多个用 ',' 分隔.
+ *  @param where     一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *  @param limit     偏移值.
+ *  @param resetData 执行成功后是否重置查询操作
+ *
+ *  @return YES, 执行成功;NO, 执行失败.
+ */
+// !!!: 传递并处理偏移值,delete时,没有意义,而且语法报错.(sqlite)
+- (BOOL) remove: (NSString *) table
+          where: (NSDictionary *) where
+          limit: (NSUInteger) limit
+      resetData: (BOOL) resetData;
+
+/**
+ *  开始 ACTIVE RECORD 缓存.
+ */
+- (void) startCache;
+
+/**
+ *  停止 ACTIVE RECORD 缓存.
+ */
+- (void) stopCache;
+
+/**
+ *  清空 ACTIVE RECORD 缓存.
+ */
+- (void) flushCache;
 @end

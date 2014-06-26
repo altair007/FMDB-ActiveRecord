@@ -1040,6 +1040,72 @@
     
     return [self executeUpdate: sql];
 }
+
+- (BOOL) remove: (NSString *) table
+          where: (NSDictionary *) where
+          limit: (NSUInteger) limit
+      resetData: (BOOL) resetData
+{
+    // 将缓存内容与当前语句合并.
+    [self YFDBMergeCache];
+    
+    if (nil == table ||
+        YES == [table isEqualToString: @""]) {
+        if (0 == self.arFrom.count) {
+            return NO;
+        }
+        
+        table = self.arFrom[0];
+    }
+    
+    if (nil != where) {
+        [self where: where];
+    }
+    
+    if (NSUIntegerMax != limit) {
+        [self limit: limit];
+    }
+    
+    if (0 == self.arWhere.count &&
+        0 == self.arWherein.count &&
+        0 == self.arLike.count) {
+        return NO;
+    }
+    
+    NSString * sql = [self YFDBDelete: table where: self.arWhere like: self.arLike limit: self.arLimit];
+    
+    if (YES == resetData) {
+        [self YFDBResetWrite];
+    }
+    
+    return [self executeUpdate: sql];
+}
+
+- (void) startCache
+{
+    self.arCaching = YES;
+}
+
+- (void) stopCache
+{
+    self.arCaching = NO;
+}
+
+- (void) flushCache
+{
+    NSDictionary * resetItems = @{@"arCacheSelect": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheFrom": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheJoin": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheWhere": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheLike": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheGroupby": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheHaving": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheOrderby": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheSet": [NSMutableArray arrayWithCapacity: 42],
+                                  @"arCacheExists": [NSMutableArray arrayWithCapacity: 42]
+                                  };
+    [self YFDBResetRun: resetItems];
+}
 #pragma mark - 私有方法.
 - (YFDataBase *) YFDBMaxMinAvgSum: (NSString *) field
                             alias: (NSString *) alias
@@ -1532,7 +1598,7 @@
     if (NSUIntegerMax != limit) {
         [limitClause appendFormat: @"LIMIT %lu", limit];
     }
-    
+
     NSMutableString * orderbyClause = [NSMutableString stringWithCapacity: 42];
     if (nil != orderby &&
         0 != orderby.count) {

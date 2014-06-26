@@ -82,7 +82,15 @@
 //                              where: nil
 //                               like: nil
 //                              limit: NSUIntegerMax];
-    BOOL b =  [db emptyTable: @"TEST"];
+//    BOOL b =  [db emptyTable: @"TEST"];
+    
+//    BOOL b = [db remove: @"YFDBPersons" where: @{@"pkName" :@"A"} limit: NSUIntegerMax resetData:YES];
+    
+    [db startCache];
+    [db where: @{@"pkName": @"邓紫棋", @"txtLove": @"昆凌"}];
+    [db stopCache];
+    [db flushCache];
+    
     
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
