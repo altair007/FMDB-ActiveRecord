@@ -13,6 +13,7 @@
 // !!!: 添加一些额外的 常用  AR 功能.
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
 // !!!: 借鉴 FMDB 同时支持 ARC 和 MRC.
+// !!!: 附 FMDB 中文翻译。
 /**
  *  sqltie支持的join类型.
  */
@@ -202,23 +203,29 @@ typedef enum{
  */
 - (YFDataBase *) orWhere: (NSDictionary *) where;
 
+// !!!:剔除所有的 whereIn 语法。及其附属所有私有方法。
+// !!!: 迭代至此。名字改为 invalues  改一下注释和文档说明。有一个 bug,无法用 number 作参数。其他方法是否有此问题！少了一个逻辑：把 number 转为 string,以统一操作。
 /**
- *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果需要,使用 AND 与SQL语句其他部分拼接.
- *
- *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
- *
- *  @return 实例对象自身.
- */
-- (YFDataBase *) whereIn: (NSDictionary *) where;
+ *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果 WHERE 子句含有其他部分，将用 AND 与其连接起来.
+*
+*  @param field 字段。
+*  @param values 可选的值的范围。
+*
+*  @return 实例对象自身。
+*/
+- (YFDataBase *) where: (NSString *) field
+                    inValues: (NSArray *) values;
 
 /**
- *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果需要,使用 OR 与SQL语句其他部分拼接.
+ *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果 WHERE 子句含有其他部分，将用 OR 与其连接起来.
  *
- *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
+ *  @param field 字段。
+ *  @param values 可选的值的范围。
  *
- *  @return 实例对象自身.
+ *  @return 实例对象自身。
  */
-- (YFDataBase *) orWhereIn: (NSDictionary *) where;
+- (YFDataBase *) orWhere: (NSString *) field
+                      in: (NSArray *) values;
 
 /**
  *  产生一个 WHERE 字段 NOT IN ('值1', '值2') 形式的SQL查询.如果需要,使用 AND 与SQL语句其他部分拼接.

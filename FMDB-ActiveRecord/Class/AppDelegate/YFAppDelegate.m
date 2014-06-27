@@ -78,23 +78,49 @@
 //    $this->db->join('comments', 'comments.id = blogs.id');
 //    $query = $this->db->get();
     
-    [db select];
-    [db from: @"blogs"];
-    [db join: @"comments" condtion: @"comments.id = blogs.id"];
-    FMResultSet * result = [db get];
+//    [db select];
+//    [db from: @"blogs"];
+//    [db join: @"comments" condtion: @"comments.id = blogs.id"];
+//    FMResultSet * result = [db get];
+    
+//    $this->db->join('comments', 'comments.id = blogs.id', 'left');
+    
+//    [db select];
+//    [db from: @"blogs"];
+//    [db join: @"comments" condtion: @"comments.id = blogs.id" type: YFDBLeftOuterJoin];
+//    FMResultSet * result = [db get];
     // 生成:
     // SELECT * FROM blogs
-    // JOIN comments ON comments.id = blogs.id
+    // LEFT OUTTER JOIN comments ON comments.id = blogs.id
     
 //    $this->db->select('title, content, date');
 //    $this->db->from('mytable');
 //    $query = $this->db->get();
 //    // 生成: SELECT title, content, date FROM mytable
     
+//    [db select];
+//    [db from: @"blogs"];
+//    [db orWhere: @{@"name": @"颜风", @"id > ": [NSNumber numberWithUnsignedInteger: 42]}];
+//    FMResultSet * result = [db get];
+    // 生成:
+    // SELECT * FROM blogs
+    // WHERE name = '颜风' OR id > 42
+    
+    
+//    $names = array('Frank', 'Todd', 'James');
+//    $this->db->where_in('username', $names);
+    
+    [db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
+    [db where: @"username" inValues: @[@"Shadow", @"Altair"]];
+    FMResultSet * result = [db get: @"blogs"];
+    // 生成:
+    // SELECT * FROM blogs
+    // WHERE username IN ('Shadow', 'Altair')
+    
     NSMutableString * message = [NSMutableString stringWithCapacity: 42];
     
     while ([result next]) {
-        [message appendFormat: @"%d\n", [result intForColumnIndex:0]];
+        [message appendFormat: @"%@\n", [result stringForColumn: @"username"]];
     }
     
     [self showAlertViewWithMessage: message];

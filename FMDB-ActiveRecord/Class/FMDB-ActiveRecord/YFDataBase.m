@@ -106,9 +106,25 @@
  *
  *  @return 实例对象自身.
  */
+// !!!: 准备删除它！
 - (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
                          not: (BOOL) isNot
                         type: (NSString *) type;
+
+/**
+ *  供其他方法调用:where:in: where:inOr: where:notIn: where:notInOr:.
+ *
+ *  @param field 字段.
+ *  @param values 可选范围.
+ *  @param isNot YES,是 NOT IN查询;NO,是 IN查询.
+ *  @param type  类型,可选: @"AND", @"OR"
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) YFDBWhere: (NSString *) field
+                        in: (NSArray *) values
+                       not: (BOOL) isNot
+                      type: (NSString *) type;
 
 /**
  *  使用"'"符号转义字符串.
@@ -524,14 +540,16 @@
     return [self YFDBWhere: where type: @"OR"];   
 }
 
-- (YFDataBase *) whereIn: (NSDictionary *) where
+- (YFDataBase *) where: (NSString *) field
+                    inValues: (NSArray *) values
 {
-    return [self YFDBWhereIn: where not: NO type: @"AND"];
+    return [self YFDBWhere: field in: values not: NO type: @"AND"];
 }
 
-- (YFDataBase *) orWhereIn: (NSDictionary *) where
+- (YFDataBase *) orWhere: (NSString *) field
+                      in: (NSArray *) values
 {
-    return [self YFDBWhereIn: where not: NO type: @"OR"];
+    return [self YFDBWhere: field in: values not: NO type: @"OR"];
 }
 
 - (YFDataBase *) whereNotIn: (NSDictionary *) where
@@ -1149,6 +1167,40 @@
 - (NSString *) YFDBTrim: (NSString *) str
 {
     return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+}
+
+- (YFDataBase *) YFDBWhere: (NSString *) field
+                        in: (NSArray *) values
+                       not: (BOOL) isNot
+                      type: (NSString *) type
+{
+    NSMutableArray * valuesTemp = [NSMutableArray arrayWithCapacity: 42];
+    [values enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        obj = [self YFDBEscape: [self YFDBTrim: obj]];
+        [valuesTemp addObject: obj];
+    }];
+    NSString * value = [valuesTemp componentsJoinedByString: @","];
+    
+    NSString * not = @"NOT";
+    if (YES != isNot) {
+        not = @"";
+    }
+    
+    NSString * prefix = type;
+    if (0 == self.arWhere.count && 0 == self.arCacheWhere.count) {
+        prefix = @"";
+    }
+    
+    NSString * whereIn = [NSString stringWithFormat: @"%@ %@ %@ IN (%@)", prefix, field, not, value];
+    
+    [self.arWhere addObject: whereIn];
+    
+    if (YES == self.arCaching) {
+        [self.arCacheWhere addObject: whereIn];
+        [self.arCacheExists addObject: @"WHERE"];
+    }
+    
+    return self;
 }
 
 - (YFDataBase *) YFDBWhereIn: (NSDictionary *) where

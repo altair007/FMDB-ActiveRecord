@@ -137,10 +137,19 @@ FMResultSet * result = [db get];
 ### join: condtion: type: 
 ***
 
-允许你编写查询中的 **JOIN** 部分:
+允许你编写查询中的 **JOIN** 部分。
 
-// !!!: 迭代至此！
-如果你需要指定 JOIN 类型，你
+```
+[db select];
+[db from: @"blogs"];
+[db join: @"comments" condtion: @"comments.id = blogs.id" type: YFDBLeftOuterJoin];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// LEFT OUTTER JOIN comments ON comments.id = blogs.id
+```
+
+如果你不需要指定 JOIN 类型，你可以使用 *join:condtion:* 方法。
 
 ```
 [db select];
@@ -154,75 +163,107 @@ FMResultSet * result = [db get];
 
 如果你想要在查询中使用多个连接，可以多次向数据库对象发送此消息。
 
-如果你需要指定 JOIN 的类型，你可以使用。
 
-$this->db->join('comments', 'comments.id = blogs.id', 'left');
+### where:
+***
 
-// 生成: LEFT JOIN comments ON comments.id = blogs.id
-$this->db->where();
+本方法允许你使用三种方式中的一种来设置 **WHERE** 子句:
 
-本函数允许你使用四种方法中的一种来设置 WHERE 子句:
+* 简单的 key/value 方式，即向方法传递一个单键值对字典对象: 
 
-说明: 传递给本函数的所有值都会被自动转义，以便生成安全的查询。
+```   
+[db select];
+[db from: @"blogs"];
+[db where: @{@"name": @"颜风"}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name = '颜风'
+```
 
-简单的 key/value 方法: $this->db->where('name', $name); 
-
-// 生成: WHERE name = 'Joe'
 请注意等号已经为你添加。
 
-如果你多次调用本函数，那么这些条件会被 AND 连接起来:
+如果你多次向数据库对象发送此消息，那么这些条件会被 **AND** 连接起来:
 
-$this->db->where('name', $name);
-$this->db->where('title', $title);
-$this->db->where('status', $status); 
+```
+[db select];
+[db from: @"blogs"];
+[db where: @{@"name": @"颜风"}];
+[db where: @{@"title": @"出处"}];
+[db where: @{@"status": @"active"}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name = '颜风' AND title = '出处' AND status = 'active'
+```
 
-// WHERE name = 'Joe' AND title = 'boss' AND status = 'active'
-自定义 key/value 方法:
-你可以在第一个参数中包含一个运算符，以便控制比较:
+* 自定义 key/value 方式:
+你仍然需要向方法传递一个单键值对字典对象， 但你可以在 key 中包含一个运算符，以便控制比较:
 
-$this->db->where('name !=', $name);
-$this->db->where('id <', $id); 
+```
+[db select];
+[db from: @"blogs"];
+[db where: @{@"name != ": @"颜风"}];
+[db where: @{@"id < ": [NSNumber numberWithUnsignedInteger: 42]}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name != '颜风' AND id < 42
+```
 
-// 生成: WHERE name != 'Joe' AND id < 45
-关联数组方法: $array = array('name' => $name, 'title' => $title, 'status' => $status);
+* 你可以向方法传递含有多个键值对的字典对象
 
-$this->db->where($array); 
+```
+[db select];
+[db from: @"blogs"];
+[db where: @{@"name": @"颜风", @"status =": @"active"}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name = '颜风' AND status = 'active'
+```
 
-// 生成: WHERE name = 'Joe' AND title = 'boss' AND status = 'active'
 使用这个方法时你也可以包含运算符:
+ 
+```
+[db select];
+[db from: @"blogs"];
+[db where: @{@"name != ": @"颜风", @"id < ": [NSNumber numberWithUnsignedInteger: 42], @"status =": @"active"}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name != '颜风' AND id < 42 AND status = 'active'
+```
 
-$array = array('name !=' => $name, 'id <' => $id, 'date >' => $date);
+### orWhere:
+***
 
-$this->db->where($array);
-自定义字符串:
-你可以手动的编写子句:
+本方法与上面的那个几乎完全相同，唯一的区别是本方法生成的子句是用 **OR** 来连接的:
 
-$where = "name='Joe' AND status='boss' OR status='active'";
+```
+[db select];
+[db from: @"blogs"];
+[db orWhere: @{@"name": @"颜风", @"id > ": [NSNumber numberWithUnsignedInteger: 42]}];
+FMResultSet * result = [db get];
+// 生成:
+// SELECT * FROM blogs
+// WHERE name = '颜风' OR id > 42
+```
 
-$this->db->where($where);
-$this->db->where() 接受可选的第三个参数。如果你将它设置为 FALSE, CodeIgniter 将不会为你那些包含反勾号的字段名或表名提供保护。
+### where:in:
+***
 
-$this->db->where('MATCH (field) AGAINST ("value")', NULL, FALSE);
+生成一段 **WHERE field IN ('item', 'item')** 查询语句，如果 **WHERE** 子句含有其他部分，将用 **AND** 与其连接起来。
 
-$this->db->or_where();
+```
+[db where: @"username" in: @[@"Shadow", @"Altair"]];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE username IN ('Shadow', 'Altair')
+```
 
-本函数与上面的那个几乎完全相同，唯一的区别是本函数生成的子句是用 OR 来连接的:
-
-$this->db->where('name !=', $name);
-$this->db->or_where('id >', $id); 
-
-// 生成: WHERE name != 'Joe' OR id > 50
-说明: or_where() 以前被叫作 orwhere(), 后者已经过时，现已从代码中移除 orwhere()。
-
-$this->db->where_in();
-
-生成一段 WHERE field IN ('item', 'item') 查询语句，如果合适的话，用 AND 连接起来。
-
-$names = array('Frank', 'Todd', 'James');
-$this->db->where_in('username', $names);
-// 生成: WHERE username IN ('Frank', 'Todd', 'James')
-
-$this->db->or_where_in();
+### $this->db->or_where_in();
 
 生成一段 WHERE field IN ('item', 'item') 查询语句，如果合适的话，用 OR 连接起来。
 
