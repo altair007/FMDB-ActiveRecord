@@ -250,51 +250,83 @@ FMResultSet * result = [db get];
 // WHERE name = '颜风' OR id > 42
 ```
 
-### where:in:
+### where:inValues:
 ***
 
 生成一段 **WHERE field IN ('item', 'item')** 查询语句，如果 **WHERE** 子句含有其他部分，将用 **AND** 与其连接起来。
 
 ```
-[db where: @"username" in: @[@"Shadow", @"Altair"]];
+[db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
+[db where: @"username" inValues: @[@"Shadow", @"Altair"]];
 FMResultSet * result = [db get: @"blogs"];
 // 生成:
 // SELECT * FROM blogs
-// WHERE username IN ('Shadow', 'Altair')
+// WHERE id IN(42, 43) AND username IN ('Shadow', 'Altair')
 ```
 
-### $this->db->or_where_in();
+### orWhere:inValues:
+***
 
-生成一段 WHERE field IN ('item', 'item') 查询语句，如果合适的话，用 OR 连接起来。
+生成一段 **WHERE field IN ('item', 'item')** 查询语句，如果合适的话，用 **OR** 连接起来。
 
-$names = array('Frank', 'Todd', 'James');
-$this->db->or_where_in('username', $names);
-// 生成: OR username IN ('Frank', 'Todd', 'James')
+```
+[db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
+[db orWhere: @"username" inValues: @[@"Shadow", @"Altair"]];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE id IN(42, 43) OR username IN ('Shadow', 'Altair')
+```
 
-$this->db->where_not_in();
+### where:notInValues:
+***
 
-生成一段 WHERE field NOT IN ('item', 'item') 查询语句，如果合适的话，用 AND 连接起来。
+生成一段 **WHERE field NOT IN ('item', 'item')** 查询语句，如果合适的话，用 **AND** 连接起来。
 
-$names = array('Frank', 'Todd', 'James');
-$this->db->where_not_in('username', $names);
-// 生成: WHERE username NOT IN ('Frank', 'Todd', 'James')
+```
+[db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
+[db where: @"username" notInValues: @[@"Shadow", @"Altair"]];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE id IN(42, 43) AND username Not IN ('Shadow', 'Altair')
+```
 
-$this->db->or_where_not_in();
+### orWhere:notInValues:
+***
 
-生成一段 WHERE field NOT IN ('item', 'item') 查询语句，如果合适的话，用 OR 连接起来。
+生成一段 **WHERE field NOT IN ('item', 'item')** 查询语句，如果合适的话，用 **OR** 连接起来。
 
-$names = array('Frank', 'Todd', 'James');
-$this->db->or_where_not_in('username', $names);
-// 生成: OR username NOT IN ('Frank', 'Todd', 'James')
+```
+[db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
+[db orWhere: @"username" notInValues: @[@"Shadow", @"Altair"]];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE id IN(42, 43) OR username Not IN ('Shadow', 'Altair')
+```
 
-$this->db->like();
+### like:side:
+***
 
-本函数允许你生成 LIKE 子句，在做查询时非常有用。
+本函数允许你生成 **LIKE** 子句，在做查询时非常有用。
 
-说明: 传递给本函数的所有值都会被自动转义。
+* 你可以向方法传递一个单键值对字典，这可能是最常用的方式。
 
-简单 key/value 方式: $this->db->like('title', 'match'); 
+```
+$this->db->like('title', 'match', 'before'); 
+// 生成: WHERE title LIKE '%match' 
+```
+```
+$this->db->like('title', 'match', 'after'); 
+// 生成: WHERE title LIKE 'match%' 
+```
+```
+$this->db->like('title', 'match', 'both'); 
+// 生成: WHERE title LIKE '%match%'
+```
 
+$this->db->like('title', 'match'); 
 // 生成: WHERE title LIKE '%match%'
 如果你多次调用本函数，那么这些条件将由 AND 连接起来:
 

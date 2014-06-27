@@ -154,11 +154,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425538692.557933"
+            timestampString = "425555406.327555"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1651"
-            endingLineNumber = "1651"
+            startingLineNumber = "1653"
+            endingLineNumber = "1653"
             landmarkName = "-YFDBUpdate:batch:index:where:"
             landmarkType = "5">
          </BreakpointContent>
@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FMDB-ActiveRecord/Class/FMDB-ActiveRecord/YFDataBase.m"
-            timestampString = "425538692.557933"
+            timestampString = "425555406.327555"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1527"
-            endingLineNumber = "1527"
+            startingLineNumber = "1529"
+            endingLineNumber = "1529"
             landmarkName = "-YFDBSetInsertBatch:"
             landmarkType = "5">
          </BreakpointContent>

@@ -110,12 +110,20 @@
 //    $names = array('Frank', 'Todd', 'James');
 //    $this->db->where_in('username', $names);
     
-    [db where: @"id" inValues: @[[NSNumber numberWithUnsignedInteger: 42], [NSNumber numberWithUnsignedInteger: 43]]];
-    [db where: @"username" inValues: @[@"Shadow", @"Altair"]];
+//    $names = array('Frank', 'Todd', 'James');
+//    $this->db->or_where_in('username', $names);
+    // 生成: OR username IN ('Frank', 'Todd', 'James')
+    
+//    $this->db->like('title', 'match', 'before');
+    
+    // 生成: WHERE title LIKE '%match'
+    
+    // !!!:迭代至此！
+    [db like: @{@"title": @"颜风"} side: YFDBLikeSideBefore];
     FMResultSet * result = [db get: @"blogs"];
     // 生成:
     // SELECT * FROM blogs
-    // WHERE username IN ('Shadow', 'Altair')
+    // WHERE title LIKE '%颜风'
     
     NSMutableString * message = [NSMutableString stringWithCapacity: 42];
     

@@ -122,7 +122,7 @@
  *  @return 实例对象自身.
  */
 - (YFDataBase *) YFDBWhere: (NSString *) field
-                        in: (NSArray *) values
+                        inValues: (NSArray *) values
                        not: (BOOL) isNot
                       type: (NSString *) type;
 
@@ -541,25 +541,27 @@
 }
 
 - (YFDataBase *) where: (NSString *) field
-                    inValues: (NSArray *) values
+              inValues: (NSArray *) values
 {
-    return [self YFDBWhere: field in: values not: NO type: @"AND"];
+    return [self YFDBWhere: field inValues: values not: NO type: @"AND"];
 }
 
 - (YFDataBase *) orWhere: (NSString *) field
-                      in: (NSArray *) values
+                inValues: (NSArray *) values
 {
-    return [self YFDBWhere: field in: values not: NO type: @"OR"];
+    return [self YFDBWhere: field inValues: values not: NO type: @"OR"];
 }
 
-- (YFDataBase *) whereNotIn: (NSDictionary *) where
+- (YFDataBase *) where: (NSString *) field
+           notInValues: (NSArray *) values
 {
-    return [self YFDBWhereIn: where not: YES type: @"AND"];
+    return [self YFDBWhere: field inValues: values not: YES type: @"AND"];
 }
 
-- (YFDataBase *) OrWhereNotIn: (NSDictionary *) where
+- (YFDataBase *) orWhere: (NSString *) field
+             notInValues: (NSArray *) values
 {
-    return [self YFDBWhereIn: where not: YES type: @"OR"];
+    return [self YFDBWhere: field inValues: values not: YES type: @"OR"];
 }
 
 - (YFDataBase *) like: (NSDictionary *) like
@@ -584,6 +586,26 @@
                       side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"OR" side: side not: YES];
+}
+
+- (YFDataBase *) like: (NSDictionary *) like
+{
+    return [self YFDBLike: like type: @"AND" side: YFDBLikeSideBoth not: NO];
+}
+
+- (YFDataBase *) notLike: (NSDictionary *) like
+{
+    return [self YFDBLike: like type: @"AND" side: YFDBLikeSideBoth not: YES];
+}
+
+- (YFDataBase *) OrLike: (NSDictionary *) like
+{
+    return [self YFDBLike: like type: @"OR" side: YFDBLikeSideBoth not: NO];
+}
+
+- (YFDataBase *) OrNotLike: (NSDictionary *) like
+{
+    return [self YFDBLike: like type: @"OR" side: YFDBLikeSideBoth not: YES];
 }
 
 - (YFDataBase *) groupBy: (NSString *) by
@@ -1166,11 +1188,11 @@
 
 - (NSString *) YFDBTrim: (NSString *) str
 {
-    return [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    return [[NSString stringWithFormat:@"%@", str] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
 - (YFDataBase *) YFDBWhere: (NSString *) field
-                        in: (NSArray *) values
+                        inValues: (NSArray *) values
                        not: (BOOL) isNot
                       type: (NSString *) type
 {
