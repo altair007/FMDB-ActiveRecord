@@ -118,12 +118,13 @@
     
     // 生成: WHERE title LIKE '%match'
     
-    // !!!:迭代至此！
-    [db like: @{@"title": @"颜风"} side: YFDBLikeSideBefore];
+//    [db like: @{@"title": @"颜风"}];
+//    [db orNotLike: @{@"body": @"大爱颜风"}];
+    // !!!:结果不准确! 迭代至此！
+    [db groupBy: @"title, id"];
     FMResultSet * result = [db get: @"blogs"];
     // 生成:
-    // SELECT * FROM blogs
-    // WHERE title LIKE '%颜风'
+    // SELECT * FROM blogs GROUP BY title
     
     NSMutableString * message = [NSMutableString stringWithCapacity: 42];
     

@@ -314,77 +314,124 @@ FMResultSet * result = [db get: @"blogs"];
 * 你可以向方法传递一个单键值对字典，这可能是最常用的方式。
 
 ```
-$this->db->like('title', 'match', 'before'); 
-// 生成: WHERE title LIKE '%match' 
+[db like: @{@"title": @"颜风"} side: YFDBLikeSideBefore];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风'
 ```
 ```
-$this->db->like('title', 'match', 'after'); 
-// 生成: WHERE title LIKE 'match%' 
+[db like: @{@"title": @"颜风"} side: YFDBLikeSideAfter];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '颜风%'
 ```
 ```
-$this->db->like('title', 'match', 'both'); 
-// 生成: WHERE title LIKE '%match%'
+[db like: @{@"title": @"颜风"} side: YFDBLikeSideBoth];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%'
+```
+```
+[db like: @{@"title": @"颜风"} side: YFDBLikeSideNone];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '颜风'
 ```
 
-$this->db->like('title', 'match'); 
-// 生成: WHERE title LIKE '%match%'
-如果你多次调用本函数，那么这些条件将由 AND 连接起来:
+如果你不想控制通配符（*%*）的位置，你可以直接使用 *like:*方法。
 
-$this->db->like('title', 'match');
-$this->db->like('body', 'match'); 
+```
+[db like: @{@"title": @"颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%'
+```
 
-// WHERE title LIKE '%match%' AND body LIKE '%match%' 如果你想要控制通配符(%)所出现的位置，你可以使用可选的第三个参数。可用的选项是 'before', 'after' 以及 'both' (这是默认值)。 $this->db->like('title', 'match', 'before'); 
-// 生成: WHERE title LIKE '%match' 
+如果你多次调用本函数，那么这些条件将由 **AND** 连接起来:
 
-$this->db->like('title', 'match', 'after'); 
-// 生成: WHERE title LIKE 'match%' 
+```
+[db like: @{@"title": @"颜风"}];
+[db like: @{@"body": @"大爱颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%' AND body LIKE '%大爱颜风%'
+```
 
-$this->db->like('title', 'match', 'both'); 
-// 生成: WHERE title LIKE '%match%'
-如果你不想使用百分号(%)，你可以给第三个可选的参数传递一个'none'。 $this->db->like('title', 'match', 'none'); 
-// Produces: WHERE title LIKE 'match'
-关联数组方式: $array = array('title' => $match, 'page1' => $match, 'page2' => $match);
+* 你也可以直接向方法传递一个含有多个键值对的字典对象。
 
-$this->db->like($array); 
+```
+[db like: @{@"title": @"颜风", @"body": @"大爱颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%' AND body LIKE '%大爱颜风%'
+```
 
-// WHERE title LIKE '%match%' AND page1 LIKE '%match%' AND page2 LIKE '%match%'
-$this->db->or_like();
+### OrLike:side:
 
-本函数与上面那个函数几乎完全相同，唯一的区别是多个实例之间是用 OR 连接起来的:
+本方法与上面那个函数几乎完全相同，唯一的区别是多个实例之间是用 **OR** 连接起来的:
 
-$this->db->like('title', 'match');
-$this->db->or_like('body', $match); 
+```
+[db like: @{@"title": @"颜风"}];
+[db orLike: @{@"body": @"大爱颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%' OR body LIKE '%大爱颜风%'
+```
 
-// WHERE title LIKE '%match%' OR body LIKE '%match%'
-说明: or_like() 曾经被称为 orlike(), 后者已经过时，现已从代码中移除 orlike()。
+### notLike:side:
 
-$this->db->not_like();
+本方法与 *like:side:* 方法几乎完全相同，唯一的区别是它生成 **NOT LIKE** 语句:
 
-本函数与 like() 几乎完全相同，唯一的区别是它生成 NOT LIKE 语句:
+```
+[db like: @{@"title": @"颜风"}];
+[db notLike: @{@"body": @"大爱颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%' OR body NOT LIKE '%大爱颜风%'
+```
 
-$this->db->not_like('title', 'match');
+### $this->db->or_not_like();
+***
 
-// WHERE title NOT LIKE '%match%
-$this->db->or_not_like();
+本F方法与 *notLike:side:* 几乎完全相同，唯一的区别是多个实例之间是用 **OR** 连接起来的:
 
-本函数与 not_like() 几乎完全相同，唯一的区别是多个实例之间是用 OR 连接起来的:
+```
+[db like: @{@"title": @"颜风"}];
+[db orNotLike: @{@"body": @"大爱颜风"}];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs
+// WHERE title LIKE '%颜风%' OR body NOT LIKE '%大爱颜风%'
+```
 
-$this->db->like('title', 'match');
-$this->db->or_not_like('body', 'match'); 
+### groupBy:
 
-// WHERE title LIKE '%match%' OR body NOT LIKE '%match%'
-$this->db->group_by();
+允许你编写查询语句中的 **GROUP BY** 部分:
 
-允许你编写查询语句中的 GROUP BY 部分:
+```
+[db groupBy: @"title"];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs GROUP BY title
+```
 
-$this->db->group_by("title"); 
+你也可以传递多个值，请用 ',' 符号分隔。
 
-// 生成: GROUP BY title
-你也可以把多个值作为数组传递过去:
-
+```
 $this->db->group_by(array("title", "date")); 
 
 // 生成: GROUP BY title, date
+```
+
 说明: group_by() 曾经被称为 groupby(), 后者已经过时，现已从代码中移除 groupby()。
 
 $this->db->distinct();

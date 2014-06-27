@@ -278,7 +278,7 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) OrLike: (NSDictionary *) like
+- (YFDataBase *) orLike: (NSDictionary *) like
                    side: (YFDBLikeSide) side;
 
 /**
@@ -289,7 +289,7 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) OrNotLike: (NSDictionary *) like
+- (YFDataBase *) orNotLike: (NSDictionary *) like
                       side: (YFDBLikeSide) side;
 
 /**
@@ -317,7 +317,7 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) OrLike: (NSDictionary *) like;
+- (YFDataBase *) orLike: (NSDictionary *) like;
 
 /**
  *  产生查询的 NOT LIKE 部分.如果有多个,使用 OR 连接.
@@ -326,7 +326,7 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) OrNotLike: (NSDictionary *) like;
+- (YFDataBase *) orNotLike: (NSDictionary *) like;
 
 /**
  *  产生查询的 GROUP BY 部分.
@@ -335,6 +335,7 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
+// ???: groupBy，按组返回，也就是结果集里有数组？默认返回结果集数组的第一个。当有多个分组依据时，又是怎样的情况！
 - (YFDataBase *) groupBy: (NSString *) by;
 
 /**

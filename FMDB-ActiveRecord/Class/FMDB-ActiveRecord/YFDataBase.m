@@ -98,20 +98,6 @@
 - (NSString *) YFDBTrim: (NSString *) str;
 
 /**
- *  供其他方法调用:whereIn: whereInOr: whereNotIn: whereNotInOr:
- *
- *  @param where 字典,以字段为key,以可选的值为value.多个值,请用','符号分隔.
- *  @param isNot YES,是 NOT IN查询;NO,是 IN查询.
- *  @param type  类型.
- *
- *  @return 实例对象自身.
- */
-// !!!: 准备删除它！
-- (YFDataBase *) YFDBWhereIn: (NSDictionary *) where
-                         not: (BOOL) isNot
-                        type: (NSString *) type;
-
-/**
  *  供其他方法调用:where:in: where:inOr: where:notIn: where:notInOr:.
  *
  *  @param field 字段.
@@ -122,7 +108,7 @@
  *  @return 实例对象自身.
  */
 - (YFDataBase *) YFDBWhere: (NSString *) field
-                        inValues: (NSArray *) values
+                  inValues: (NSArray *) values
                        not: (BOOL) isNot
                       type: (NSString *) type;
 
@@ -576,13 +562,13 @@
     return [self YFDBLike: like type: @"AND" side: side not: YES];
 }
 
-- (YFDataBase *) OrLike: (NSDictionary *) like
+- (YFDataBase *) orLike: (NSDictionary *) like
                    side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"OR" side: side not: NO];
 }
 
-- (YFDataBase *) OrNotLike: (NSDictionary *) like
+- (YFDataBase *) orNotLike: (NSDictionary *) like
                       side: (YFDBLikeSide) side
 {
     return [self YFDBLike: like type: @"OR" side: side not: YES];
@@ -598,12 +584,12 @@
     return [self YFDBLike: like type: @"AND" side: YFDBLikeSideBoth not: YES];
 }
 
-- (YFDataBase *) OrLike: (NSDictionary *) like
+- (YFDataBase *) orLike: (NSDictionary *) like
 {
     return [self YFDBLike: like type: @"OR" side: YFDBLikeSideBoth not: NO];
 }
 
-- (YFDataBase *) OrNotLike: (NSDictionary *) like
+- (YFDataBase *) orNotLike: (NSDictionary *) like
 {
     return [self YFDBLike: like type: @"OR" side: YFDBLikeSideBoth not: YES];
 }
