@@ -14,6 +14,8 @@
 // !!!:使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
 // !!!: 借鉴 FMDB 同时支持 ARC 和 MRC.
 // !!!: 附 FMDB 中文翻译。
+// !!!: 有一个 大 BUG,当字段名或表名刚好是 table 等关键字时，会报错！
+// !!!: 对字段或值转义时,应该考虑到用户可能已经做了转义操作!容错机制太薄弱.
 /**
  *  sqltie支持的join类型.
  */
@@ -38,7 +40,8 @@ typedef enum{
 typedef enum{
     YFDBOrderRandom, //!< 随机顺序.
     YFDBOrderAsc, //!< 升序排列.
-    YFDBOrderDesc //!< 降序排列.
+    YFDBOrderDesc, //!< 降序排列.
+    YFDBOrderDeault //!< 默认排序.
 } YFDBOrderDirection;
 /**
  *  支持Active Record模式的数据库类.
@@ -143,13 +146,11 @@ typedef enum{
 - (YFDataBase *) selectSum: (NSString *) field;
 
 /**
- *  设置一个标志,来向查询字符串编译器指明是否添加 DISTINCT.
- *
- *  @param distinct YES,添加;NO,不添加.
+ *  为查询语句添加 "DISTINCT" 关键字.
  *
  *  @return 实例对象自身.
  */
-- (YFDataBase *) distinct: (BOOL) distinct;
+- (YFDataBase *) distinct;
 
 /**
  *  生成一个查询的 FROM 部分.
@@ -203,7 +204,6 @@ typedef enum{
  */
 - (YFDataBase *) orWhere: (NSDictionary *) where;
 
-// !!!:剔除所有的 whereIn 语法。及其附属所有私有方法。
 /**
  *  产生一个 WHERE 字段 IN ('值1', '值2') 形式的SQL查询.如果 WHERE 子句含有其他部分，将用 AND 与其连接起来.
 *
@@ -335,7 +335,6 @@ typedef enum{
  *
  *  @return 实例对象自身.
  */
-// ???: groupBy，按组返回，也就是结果集里有数组？默认返回结果集数组的第一个。当有多个分组依据时，又是怎样的情况！
 - (YFDataBase *) groupBy: (NSString *) by;
 
 /**
@@ -366,6 +365,15 @@ typedef enum{
  */
 - (YFDataBase *) orderBy: (NSString *) orderBy
                direction: (YFDBOrderDirection) direction;
+
+/**
+ *  设置 ORDER BY 的值.此时 SQL 查询中将不会使用 ASC 或 DESC 显示指定排序顺序.
+ *
+ *  @param orderBy   分组依据,多个请用','分隔.
+ *
+ *  @return 实例对象自身.
+ */
+- (YFDataBase *) orderBy: (NSString *) orderBy;
 
 /**
  *  设置 LIMIT 值.

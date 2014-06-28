@@ -444,9 +444,9 @@
     return [self selectSum: field alias: nil];
 }
 
-- (YFDataBase *) distinct: (BOOL) distinct
+- (YFDataBase *) distinct
 {
-    self.arDistinct = distinct;
+    self.arDistinct = YES;
     return self;
 }
 
@@ -630,15 +630,19 @@
     NSString * orderbyStatement = nil;
 
     if (YFDBOrderRandom == direction) {
-        orderbyStatement = @"RANDOM()";
+        orderbyStatement = @" RANDOM()";
     }
     
-    NSString * directionStr = @"ASC";
+    NSString * directionStr = @" ASC";
     if (YFDBOrderDesc == direction) {
-        directionStr = @"DESC";
+        directionStr = @" DESC";
     }
     
-    orderbyStatement = [NSString stringWithFormat: @"%@ %@", orderBy, directionStr];
+    if (YFDBOrderDeault == direction) {
+        directionStr = @"";
+    }
+    
+    orderbyStatement = [NSString stringWithFormat: @"%@%@", orderBy, directionStr];
     
     [self.arOrderby addObject: orderbyStatement];
     if (YES == self.arCaching) {
@@ -647,6 +651,11 @@
     }
     
     return self;
+}
+
+- (YFDataBase *) orderBy: (NSString *) orderBy
+{
+    return [self orderBy: orderBy direction: YFDBOrderDeault];
 }
 
 - (YFDataBase *) limit: (NSUInteger) limit
@@ -1254,7 +1263,13 @@
         return @"";
     }
     
-    return [NSString stringWithFormat: @"'%@'", str];
+    NSString * result = [NSString stringWithFormat: @"'%@'", str];
+    
+    if (YES ==[str isKindOfClass:[NSNumber class]]) {
+        result = [NSString stringWithFormat: @"%@", str];
+    }
+    
+    return result;
 }
 
 - (YFDataBase *) YFDBLike: (NSDictionary *) like
@@ -1428,7 +1443,7 @@
     
     /* 生成查询的 JOIN 部分. */
     NSMutableString * joinClause = [NSMutableString stringWithCapacity: 42];
-    if (0 != self.arJoin) {
+    if (0 != self.arJoin.count) {
         [joinClause appendFormat:@"\n%@", [self.arJoin componentsJoinedByString: @"\n"]];
     }
     

@@ -120,16 +120,38 @@
     
 //    [db like: @{@"title": @"颜风"}];
 //    [db orNotLike: @{@"body": @"大爱颜风"}];
-    // !!!:结果不准确! 迭代至此！
-    [db groupBy: @"title, id"];
-    FMResultSet * result = [db get: @"blogs"];
-    // 生成:
-    // SELECT * FROM blogs GROUP BY title
+
+//    [db selectMax:@"id" alias: @"数量"];
+//    [db groupBy: @"title"];
+//    FMResultSet * result = [db get: @"blogs"];
+//    // 生成:
+//    // SELECT * FROM blogs GROUP BY title, id
+    
+//    $this->db->distinct();
+//    $this->db->get('table');
+    
+//    $this->db->having(array('title =' => 'My Title', 'id <' => $id));
+    
+    // 生成: HAVING title = 'My Title' AND id < 45
+    
+//    [db distinct];
+//    FMResultSet * result =  [db get: @"blogs"];
+    // 生成: SELECT DISTINCT * FROM blogs
+    
+    // !!!:迭代至此!
+//    $this->db->order_by('title desc, name asc');
+//    // 生成: ORDER BY title DESC, name ASC
+    [db orderBy: @"title" direction: YFDBOrderDeault];
+    FMResultSet * result =  [db get: @"blogs"];
+//    生成:
+//    SELECT *
+//    FROM (blogs)
+//    ORDER BY title DESC
     
     NSMutableString * message = [NSMutableString stringWithCapacity: 42];
     
     while ([result next]) {
-        [message appendFormat: @"%@\n", [result stringForColumn: @"username"]];
+        [message appendFormat: @"%@\n", [result stringForColumn: @"title"]];
     }
     
     [self showAlertViewWithMessage: message];

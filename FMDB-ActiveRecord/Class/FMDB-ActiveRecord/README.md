@@ -373,7 +373,7 @@ FMResultSet * result = [db get: @"blogs"];
 // WHERE title LIKE '%颜风%' AND body LIKE '%大爱颜风%'
 ```
 
-### OrLike:side:
+### orLike:side:
 
 本方法与上面那个函数几乎完全相同，唯一的区别是多个实例之间是用 **OR** 连接起来的:
 
@@ -399,7 +399,7 @@ FMResultSet * result = [db get: @"blogs"];
 // WHERE title LIKE '%颜风%' OR body NOT LIKE '%大爱颜风%'
 ```
 
-### $this->db->or_not_like();
+### orNotLike:side:
 ***
 
 本F方法与 *notLike:side:* 几乎完全相同，唯一的区别是多个实例之间是用 **OR** 连接起来的:
@@ -424,63 +424,71 @@ FMResultSet * result = [db get: @"blogs"];
 // SELECT * FROM blogs GROUP BY title
 ```
 
-你也可以传递多个值，请用 ',' 符号分隔。
+也可以传递用 ',' 符号分隔的多个值。
 
 ```
-$this->db->group_by(array("title", "date")); 
-
-// 生成: GROUP BY title, date
+[db groupBy: @"title, id"];
+FMResultSet * result = [db get: @"blogs"];
+// 生成:
+// SELECT * FROM blogs GROUP BY title, id
 ```
 
-说明: group_by() 曾经被称为 groupby(), 后者已经过时，现已从代码中移除 groupby()。
+### distinct
+***
 
-$this->db->distinct();
-为查询语句添加 "DISTINCT" 关键字:
+为查询语句添加 **DISTINCT** 关键字:
 
-$this->db->distinct();
-$this->db->get('table');
+```
+[db distinct];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成: SELECT DISTINCT * FROM blogs
+```
 
-// 生成: SELECT DISTINCT * FROM table
+### having:
+***
 
-$this->db->having();
 
-允许你为你的查询语句编写 HAVING 部分。有两种语法形式，一个或两个参数都可以:
+允许你为你的查询语句编写 **HAVING** 部分。
 
-$this->db->having('user_id = 45'); 
-// 生成: HAVING user_id = 45
+、、、
+[db select: @"COUNT(id) number, title"];
+[db groupBy: @"title"];
+[db having: @{@"number > ": [NSNumber numberWithUnsignedInteger: 2],@"title != ": @"颜风"}];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT COUNT(id) number, title
+// FROM (blogs)
+// GROUP BY title
+// HAVING  number >  2
+// AND title !=  '颜风'
+、、、
 
-$this->db->having('user_id', 45); 
-// 生成: HAVING user_id = 45
+### orHaving:
+***
 
-你也可以把多个值通过数组传递过去:
+与 *having:* 函数几乎完全一样，唯一的区别是多个子句之间是用 **OR** 分隔的。
 
-$this->db->having(array('title =' => 'My Title', 'id <' => $id)); 
+### orderBy:direction:
+***
 
-// 生成: HAVING title = 'My Title' AND id < 45
+帮助你设置一个 **ORDER BY** 子句。第一个参数是你想要排序的字段名。第二个参数设置结果的顺序，可用的选项包括 YFDBOrderAsc (升序)或 YFDBOrderDesc(降序), 或 YFDBOrderRandom(随机) 或 YFDBOrderDeault (默认,SQLite 默认升序)。
 
-如果你正在使用一个由CodeIgniter进行转义保护的数据库，为了避免内容转义，你可以传递可选的第三个参数，并将其设置为FALSE。
+```
+[db orderBy: @"title" direction: YFDBOrderDesc];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT *
+// FROM (blogs)
+// ORDER BY title DESC
+```
 
-$this->db->having('user_id', 45); 
-// 生成: HAVING `user_id` = 45 (在诸如MySQL等数据库中) 
-$this->db->having('user_id', 45, FALSE); 
-// 生成: HAVING user_id = 45
+如果你想在第一个参数中传递你自己的字符串, *orderBY:* 方法是一个更好的选择:
 
-$this->db->or_having();
-
-与 having() 函数几乎完全一样，唯一的区别是多个子句之间是用 "OR" 分隔的。
-
-$this->db->order_by();
-
-帮助你设置一个 ORDER BY 子句。第一个参数是你想要排序的字段名。第二个参数设置结果的顺序，可用的选项包括 asc (升序)或 desc(降序), 或 random(随机)。
-
-$this->db->order_by("title", "desc"); 
-
-// 生成: ORDER BY title DESC
-你也可以在第一个参数中传递你自己的字符串:
-
+```
 $this->db->order_by('title desc, name asc'); 
-
 // 生成: ORDER BY title DESC, name ASC
+```
+
 或者，多次调用本函数就可以排序多个字段。
 
 $this->db->order_by("title", "desc");
@@ -805,5 +813,3 @@ $this->db->get('tablename');
 //Generates: SELECT `field2` FROM (`tablename`)
 
 说明: 下列语句能够被缓存: select, from, join, where, like, group_by, having, order_by, set
-
-[sd](#name)
