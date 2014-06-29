@@ -650,7 +650,7 @@
         orderbyStatement = @" RANDOM()";
     }
     
-    if (nil != orderbyStatement) {
+    if (nil == orderbyStatement) {
         NSString * directionStr = @" ASC";
         if (YFDBOrderDesc == direction) {
             directionStr = @" DESC";
