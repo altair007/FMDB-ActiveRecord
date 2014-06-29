@@ -302,6 +302,19 @@
                     where: (NSArray *) where
                      like: (NSArray *) like;
 
+
+/**
+ *  编译并执行 DELETE 语句.
+ *
+ *  @param table     表名,多个用 ',' 分隔.
+ *  @param where     一个字典,以字段或包含操作符的字段为key,以条件值为value.
+ *  @param resetData 执行成功后是否重置查询操作
+ *
+ *  @return YES, 执行成功;NO, 执行失败.
+ */
+- (BOOL) YFDBRemove: (NSString *) table
+              where: (NSDictionary *) where
+          resetData: (BOOL) reset;
 @end
 
 @implementation YFDataBase
@@ -698,6 +711,7 @@
         [self limit: limit offset: offset];
     }
     
+    // FIXME: 如果一个 table,from 后面就不需要括号了.
     NSString * sql = [self YFDBCompileSelect];
     [self YFDBResetSelect];
     
@@ -1033,10 +1047,25 @@
     return [self executeUpdate: sql];
 }
 
-- (BOOL) remove: (NSString *) table
+- (BOOL) YFDBRemove: (NSString *) table
           where: (NSDictionary *) where
       resetData: (BOOL) reset
 {
+    if (NSNotFound != [table rangeOfString: @","].location) {
+        NSArray * tables = [table componentsSeparatedByString:@","];
+        for (NSString * obj in tables) {
+            BOOL resetData = NO;
+            if ([tables indexOfObject: obj] == tables.count - 1) {
+                resetData = YES;
+            }
+            
+            if (YES != [self YFDBRemove: [self YFDBTrim: obj] where: where resetData: resetData]) {
+                return NO;
+            }
+        }
+        return YES;
+    }
+    
     // 将缓存内容与当前语句合并.
     [self YFDBMergeCache];
     
@@ -1066,6 +1095,17 @@
     }
     
     return [self executeUpdate: sql];
+}
+
+- (BOOL) remove: (NSString *) table
+          where: (NSDictionary *) where
+{
+    return [self YFDBRemove: table where: where resetData: YES];
+}
+
+- (BOOL) remove: (NSString *) table
+{
+    return [self YFDBRemove: table where: nil resetData: YES];
 }
 
 - (void) startCache
@@ -1498,6 +1538,15 @@
 
 - (NSString *) YFDBFromTables: (NSArray *) tables
 {
+    if (nil == tables ||
+        0 == tables.count) {
+        return nil;
+    }
+    
+    if (1 == tables.count) {
+        return [NSString stringWithFormat: @"%@", [tables componentsJoinedByString:@", "]];
+    }
+    
     return [NSString stringWithFormat: @"(%@)", [tables componentsJoinedByString:@", "]];
 }
 
@@ -1649,14 +1698,14 @@
                 [setSegmentsDict setObject: [NSMutableString stringWithCapacity: 42] forKey: key];
             }
             
-            [[setSegmentsDict objectForKey: key] appendFormat: @"WHEN %@ = %@ THEN %@\n", index, [set objectForKey: index], obj];
+            [[setSegmentsDict objectForKey: key] appendFormat: @"\nWHEN %@ = %@ THEN %@", index, [set objectForKey: index], obj];
             
         }];
     }];
     
     NSMutableArray * setSegmentsArray = [NSMutableArray arrayWithCapacity: 42];
     [setSegmentsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        [setSegmentsArray addObject: [NSString stringWithFormat: @"%@ = CASE \n%@\n ELSE %@ END", key, obj, key]];
+        [setSegmentsArray addObject: [NSString stringWithFormat: @"%@ = CASE %@\nELSE %@ END", key, obj, key]];
     }];
     
     NSMutableString * setClause = [NSMutableString stringWithFormat: @"SET %@", [setSegmentsArray componentsJoinedByString: @",\n"]];

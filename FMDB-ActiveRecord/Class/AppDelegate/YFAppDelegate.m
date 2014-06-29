@@ -162,11 +162,89 @@
 //[db set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
 //[db insert: @"mytable"];
     
-    [db emptyTable: @"mytable"];
-    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
-    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
-    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
-    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//    [db emptyTable: @"mytable"];
+//    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+    
+//NSArray * data = @[@{@"title": @"My title",
+//                     @"name": @"My name",
+//                     @"date": @"My date"},
+//                   @{@"title": @"Another title",
+//                     @"name": @"My name2",
+//                     @"date": @"My date2"}];
+//[db update: @"mytable" batch: data index: @"title"];
+
+//[db where: @{@"id": @"6aKc6aOO"}];
+//[db remove: @"mytable1, mytable2, mytable3"];
+//    for (int i = 0; i < 100; i++) {
+//        [db insert:@"mytable" set: @{@"id": @"6aKc6aOO", @"title": [NSNumber numberWithUnsignedInteger: i]}];
+//    }
+//    
+//    
+//[[[[db select: @"title"] from: @"mytable"] where: @{@"id": @"6aKc6aOO"}] limit:5 offset:15];
+//FMResultSet * result =  [db get];
+// 生成:
+// SELECT title
+// FROM mytable
+// WHERE  id = '6aKc6aOO'
+// LIMIT 15, 5
+    
+    [db startCache];
+    [db select: @"field1"];
+    [db stopCache];
+    FMResultSet * result = [db get: @"tablename"];
+    // 生成:
+//    SELECT field1
+//    FROM tablename
+    [db select: @"field2"];
+    [db get: @"tablename"];
+    // 生成:
+//    SELECT field1, field2
+//    FROM tablename
+//    LIMIT 0, 0
+    // ???:迭代至此!为什么会出现 LIMIT 0,0?
+    [db flushCache];
+    [db select: @"field2"];
+    [db get: @"tablename"];
+    // 生成:
+//    SELECT field2
+//    FROM tablename
+//    LIMIT 0, 0
+    
+//    $this->db->start_cache();
+//    $this->db->select('field1');
+//    $this->db->stop_cache();
+//    $this->db->get('tablename');
+//    //Generates: SELECT `field1` FROM (`tablename`)
+//    $this->db->select('field2');
+//    $this->db->get('tablename');
+//    //Generates: SELECT `field1`, `field2` FROM (`tablename`)
+//    $this->db->flush_cache();
+//    $this->db->select('field2');
+//    $this->db->get('tablename');
+//    //Generates: SELECT `field2` FROM (`tablename`)
+    
+//    [db emptyTable: @"mytable"];
+// 生成: DELETE FROM mytable
+// 生成:
+// DELETE FROM mytable
+// WHERE  id = '6aKc6aOO'
+
+// 生成:
+// UPDATE mytable
+// SET date = CASE
+// WHEN title = 'My title' THEN 'My date'
+// WHEN title = 'Another title' THEN 'My date2'
+// ELSE date END,
+// name = CASE
+// WHEN title = 'My title' THEN 'My name'
+// WHEN title = 'Another title' THEN 'My name2'
+// ELSE name END
+// WHERE title IN ('My title', 'Another title')
+    
+    
 //    [db update: @"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"} where: @{@"id": @"6aKc6aOO"}];
 // 生成:UPDATE mytable SET title = 'my title', name = 'my name', status = 'my status' WHERE  id = '6aKc6aOO'
     
@@ -176,13 +254,13 @@
 // LIMIT 0, 5
     
     
-//    NSMutableString * message = [NSMutableString stringWithCapacity: 42];
-//    
-//    while ([result next]) {
-//        [message appendFormat: @"%@ %@\n", [result stringForColumn: @"title"],  [result stringForColumn: @"name"]];
-//    }
-//    
-//    [self showAlertViewWithMessage: message];
+    NSMutableString * message = [NSMutableString stringWithCapacity: 42];
+    
+    while ([result next]) {
+        [message appendFormat: @"%@\n", [result stringForColumn: @"title"]];
+    }
+    
+    [self showAlertViewWithMessage: message];
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
 //    BOOL success = NO;

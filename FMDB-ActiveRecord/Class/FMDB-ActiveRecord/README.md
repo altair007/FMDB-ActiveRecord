@@ -618,140 +618,124 @@ NSArray * batch = @[@{@"title": @"My title",
 [db update: @"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"} where: @{@"id": @"6aKc6aOO"}];
 // 生成:UPDATE mytable SET title = 'my title', name = 'my name', status = 'my status' WHERE  id = '6aKc6aOO'
 ```
-### $this->db->update_batch();
+### update:batch:index:
 ***
 
-生成一条update命令是以你提供的数据为基础的，并执行查询。你可以传递一个数组或对象的参数给update_batch()函数。下面是一个使用一个数组作为参数的示例：Generates an update string based on the data you supply, and runs the query. You can either pass an array or an object to the function. Here is an example using an array:
+根据你提供的数据生成一条 **update** 查询语句，并执行。
 
-$data = array(
-   array(
-      'title' => 'My title' ,
-      'name' => 'My Name 2' ,
-      'date' => 'My date 2'
-   ),
-   array(
-      'title' => 'Another title' ,
-      'name' => 'Another Name 2' ,
-      'date' => 'Another date 2'
-   )
-);
+```
+NSArray * data = @[@{@"title": @"My title",
+                     @"name": @"My name",
+                     @"date": @"My date"},
+                   @{@"title": @"Another title",
+                     @"name": @"My name2",
+                     @"date": @"My date2"}];
+[db update: @"mytable" batch: data index: @"title"];
+// 生成:
+// UPDATE mytable
+// SET date = CASE
+// WHEN title = 'My title' THEN 'My date'
+// WHEN title = 'Another title' THEN 'My date2'
+// ELSE date END,
+// name = CASE
+// WHEN title = 'My title' THEN 'My name'
+// WHEN title = 'Another title' THEN 'My name2'
+// ELSE name END
+// WHERE title IN ('My title', 'Another title')
+```
+参数1:表名 参数2:存储字典的数组 参数3:用来决定数据更新位置的字段.
 
-$this->db->update_batch('mytable', $data, 'title'); 
-
-// Produces: 
-// UPDATE `mytable` SET `name` = CASE
-// WHEN `title` = 'My title' THEN 'My Name 2'
-// WHEN `title` = 'Another title' THEN 'Another Name 2'
-// ELSE `name` END,
-// `date` = CASE 
-// WHEN `title` = 'My title' THEN 'My date 2'
-// WHEN `title` = 'Another title' THEN 'Another date 2'
-// ELSE `date` END
-// WHERE `title` IN ('My title','Another title')
-参数1:表名 参数2:如上所示的二维数组 参数3:键名.
-
-提示: 所有的值都会自动进行安全性过滤.
-
- 
 ##[删除数据](id:deleteData)
 
-$this->db->delete();
+### remove:where:
+***
 
-生成并执行一条DELETE(删除)语句。
+生成并执行一条 **DELETE** 语句。
 
-$this->db->delete('mytable', array('id' => $id)); 
-
+```
+[db remove: @"mytable" where: @{@"id": @"6aKc6aOO"}];
 // 生成:
-// DELETE FROM mytable 
-// WHERE id = $id
-第一个参数是表名，第二个参数是where子句。你可以不传递第二个参数，使用 where() 或者 or_where() 函数来替代它:
-
-$this->db->where('id', $id);
-$this->db->delete('mytable'); 
-
-// 生成:
-// DELETE FROM mytable 
-// WHERE id = $id
-
-如果你想要从一个以上的表中删除数据，你可以将一个包含了多个表名的数组传递给delete()函数。
-
-$tables = array('table1', 'table2', 'table3');
-$this->db->where('id', '5');
-$this->db->delete($tables);
-
-如果你想要删除表中的全部数据，你可以使用 truncate() 函数，或者 empty_table() 函数。
-
-说明：delete方法貌似现在没有办法接收排序参数
-
-假设我想删除早期的用户登录日志信息，我的语法可能会是根据登录时间正序排列，然后跟上limit已经有的总日志条数减去想保留的条数，delete方法没有这个参数用来接收，那么我只能直接使用query传递我的sql了
-
-$this->db->empty_table();
-
-生成并执行一条DELETE(删除)语句。 $this->db->empty_table('mytable'); 
-
-// 生成
 // DELETE FROM mytable
+// WHERE  id = '6aKc6aOO'
+```
+第一个参数是表名，第二个参数用来生成 **WHERE** 子句。所以你可以配合使用*remove:* 方法 与 *where:* 方法来达到同样的效果:
 
-$this->db->truncate();
-
-生成并执行一条TRUNCATE(截断)语句。
-
-$this->db->from('mytable'); 
-$this->db->truncate(); 
-// 或 
-$this->db->truncate('mytable'); 
-
+```
+[db where: @{@"id": @"6aKc6aOO"}];
+[db remove: @"mytable"];
 // 生成:
-// TRUNCATE TABLE mytable 
-说明: 如果 TRUNCATE 命令不可用，truncate() 将会以 "DELETE FROM table" 的方式执行。
+// DELETE FROM mytable
+// WHERE  id = '6aKc6aOO'
+```
 
+如果你想要从多个表中删除数据，用','分隔表名即可.
+
+```
+[db where: @{@"id": @"6aKc6aOO"}];
+[db remove: @"mytable1, mytable2, mytable3"];
+```
+
+如果你想要删除表中的全部数据，可以向数据库对象发送 *empthTable:* 消息.
+
+### emptyTable:
+***
+
+生成并执行一条 **DELETE** 语句。 
+
+```
+[db emptyTable: @"mytable"];
+// 生成: DELETE FROM mytable
+```
 ##[链式方法](id:methodChain)
 
 链式方法允许你以连接多个函数的方式简化你的语法。考虑一下这个范例:
 
-$this->db->select('title')->from('mytable')->where('id', $id)->limit(10, 20);
-
-$query = $this->db->get();
-说明: 链式方法只能在PHP 5下面运行。
+```
+[[[[db select: @"title"] from: @"mytable"] where: @{@"id": @"6aKc6aOO"}] limit:5 offset:15];
+FMResultSet * result =  [db get];
+// 生成:
+// SELECT title
+// FROM mytable
+// WHERE  id = '6aKc6aOO'
+// LIMIT 15, 5
+```
 
 ##[Active Record 缓存](id:arCache)
 
-尽管不是 "真正的" 缓存，Active Record 允许你将查询的某个特定部分保存(或"缓存")起来，以便在你的脚本执行之后重用。一般情况下，当一次Active Record调用结束，所有已存储的信息都会被重置，以便下一次调用。如果开启缓存，你就可以使信息避免被重置，方便你进行重用。
+尽管不是 "真正的" 缓存，**Active Record** 允许你将查询的某个特定部分保存(或"缓存")起来，以便在你的脚本执行之后重用。一般情况下，当一次 **Active Record** 查询结束(比如,你向数据库对象发送了 *get:* 消息)，所有已存储的信息都会被重置，以便下一次调用。如果开启缓存，你就可以使信息避免被重置，方便你进行重用。
 
-缓存调用是累加的。如果你调用了两次有缓存的 select()，然后再调用两次没有缓存的 select()，这会导致 select() 被调用4次。有三个可用的缓存函数:
+缓存调用是累加的。如果你向数据库对象发送了两次有缓存的 **select:**，此次 **Active Record** 结束后,你再向数据库对象发送两次没有缓存的 **select:** 消息，此时数据库对象会响应4次 **select:** 消息。有三个可用的关于缓存的方法:
 
-$this->db->start_cache()
+### startCache
+***
 
-本函数必须被用来开启缓存。所有类型正确的(下面给出了支持的查询类型) Active Record 查询都会被存储起来供以后使用。
+次方法必须被用来开启缓存。所有类型正确的(下面给出了支持的查询类型) **Active Record** 查询都会被存储起来供以后使用。
 
-$this->db->stop_cache()
+### stopCache
 
-本函数可以被用来停止缓存。
+此方法可以被用来停止缓存。
 
-$this->db->flush_cache()
+### flushCache
 
-本函数从Active Record 缓存中删除全部项目。
+此方法被用来从Active Record 缓存中删除全部项目。
 
-这里是一个使用范例:
+下面是一个使用范例:
 
-$this->db->start_cache();
-$this->db->select('field1');
-$this->db->stop_cache();
-
-$this->db->get('tablename');
-
-//Generates: SELECT `field1` FROM (`tablename`)
-
+```
+[db startCache];
+[db select: @"field1"];
+[db stopCache];
+FMResultSet * result = [db get: @"tablename"];
+// 生成:
+// SELECT field1
+// FROM tablename
 $this->db->select('field2');
 $this->db->get('tablename');
-
 //Generates: SELECT `field1`, `field2` FROM (`tablename`)
-
 $this->db->flush_cache();
-
 $this->db->select('field2');
 $this->db->get('tablename');
-
 //Generates: SELECT `field2` FROM (`tablename`)
+```
 
 说明: 下列语句能够被缓存: select, from, join, where, like, group_by, having, order_by, set

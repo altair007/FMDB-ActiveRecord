@@ -17,6 +17,12 @@
 // !!!: 有一个 大 BUG,当字段名或表名刚好是 table 等关键字时，会报错！
 // !!!: 对字段或值转义时,应该考虑到用户可能已经做了转义操作!容错机制太薄弱.
 // !!!: 考虑一种特殊情况: insert 的值,刚好是 select获取的值,即直接用一个 select 语句或者一个字段名作为 inset的 value,此时语法上 sqlite 编译通不过,是不支持,还是语法有错误? INSERT INTO mytable (field) VALUES (field+1)
+// !!!: 验证这个猜想:
+/*说明：delete方法貌似现在没有办法接收排序参数
+
+假设我想删除早期的用户登录日志信息，我的语法可能会是根据登录时间正序排列，然后跟上limit已经有的总日志条数减去想保留的条数，delete方法没有这个参数用来接收，那么我只能直接使用query传递我的sql了*/
+// !!!: 我总觉得,有几处,是需要考虑缓存的数量的.结合"支持的缓存操作",具体明确一下!并用极限情况分析下.
+
 /**
  *  sqltie支持的join类型.
  */
@@ -612,15 +618,22 @@ typedef enum{
 /**
  *  编译并执行 DELETE 语句.
  *
- *  @param table     表名,多个用 ',' 分隔.
- *  @param where     一个字典,以字段或包含操作符的字段为key,以条件值为value.
- *  @param resetData 执行成功后是否重置查询操作
+ *  @param table 表名,多个用 ',' 分隔.
+ *  @param where 一个字典,以字段或包含操作符的字段为key,以条件值为value.
  *
  *  @return YES, 执行成功;NO, 执行失败.
  */
 - (BOOL) remove: (NSString *) table
-          where: (NSDictionary *) where
-      resetData: (BOOL) reset;
+          where: (NSDictionary *) where;
+
+/**
+ *  编译并执行 DELETE 语句.
+ *
+ *  @param table 表名,多个用 ',' 分隔.
+ *
+ *  @return YES, 执行成功;NO, 执行失败.
+ */
+- (BOOL) remove: (NSString *) table;
 
 /**
  *  开始 ACTIVE RECORD 缓存.
