@@ -24,7 +24,6 @@
 
 ```
 FMResultSet * result = [db get: @"mytable"];
-
 // 生成: SELECT * FROM mytable]
 ```
 
@@ -32,7 +31,6 @@ FMResultSet * result = [db get: @"mytable"];
 
 ```
 FMResultSet * result = [db get: @"mytable" limit: 10 offset: 20];
-    
 // 生成: SELECT * FROM mytable LIMIT 20, 10
 ```
 
@@ -65,8 +63,7 @@ FMResultSet * result = [db getWhere: @"mytable" where:@{@"id": idValue}];
 
 ```
 [db select: @"title, content, data"];
-FMResultSet * result = [db get: @"mytable"];
-    
+FMResultSet * result = [db get: @"mytable"]; 
 // 生成: SELECT title, content, date FROM mytable
 ```
 
@@ -450,7 +447,7 @@ FMResultSet * result =  [db get: @"blogs"];
 
 允许你为你的查询语句编写 **HAVING** 部分。
 
-、、、
+```
 [db select: @"COUNT(id) number, title"];
 [db groupBy: @"title"];
 [db having: @{@"number > ": [NSNumber numberWithUnsignedInteger: 2],@"title != ": @"颜风"}];
@@ -461,7 +458,7 @@ FMResultSet * result =  [db get: @"blogs"];
 // GROUP BY title
 // HAVING  number >  2
 // AND title !=  '颜风'
-、、、
+```
 
 ### orHaving:
 ***
@@ -584,6 +581,7 @@ NSArray * batch = @[@{@"title": @"My title",
 ```
 
 如果你多次调用本函数，它们会根据最终执行的是插入操作还是更新操作而自动合理地组织起来:
+
 ```
 [db set: @{@"name": @"my name"}];
 [db set: @{@"title": @"my title"}];
@@ -729,13 +727,17 @@ FMResultSet * result = [db get: @"tablename"];
 // 生成:
 // SELECT field1
 // FROM tablename
-$this->db->select('field2');
-$this->db->get('tablename');
-//Generates: SELECT `field1`, `field2` FROM (`tablename`)
-$this->db->flush_cache();
-$this->db->select('field2');
-$this->db->get('tablename');
-//Generates: SELECT `field2` FROM (`tablename`)
+[db select: @"field2"];
+[db get: @"tablename"];
+// 生成:
+// SELECT field1, field2
+// FROM tablename
+[db flushCache];
+[db select: @"field2"];
+[db get: @"tablename"];
+// 生成:
+// SELECT field2
+// FROM tablename
 ```
 
-说明: 下列语句能够被缓存: select, from, join, where, like, group_by, having, order_by, set
+说明: 下列语句能够被缓存: **SELECT**, **FROM**, **JOIN**, **WHERE**, **LIKE**, **GROUP BY**, **HAVING**, **ORDER BY**, **SET**

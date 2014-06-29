@@ -1436,7 +1436,7 @@
                                   @"arOrderby": [NSMutableArray arrayWithCapacity: 42],
                                   @"arWherein": [NSMutableArray arrayWithCapacity: 42],
                                   @"arDistinct": [NSNumber numberWithBool: NO],
-                                  @"arLimit": [NSNumber numberWithUnsignedInteger:0],
+                                  @"arLimit": [NSNumber numberWithUnsignedInteger:NSUIntegerMax],
                                   @"arOffset": [NSNumber numberWithUnsignedInteger:0]
                                   };
     
