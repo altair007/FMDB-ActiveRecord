@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C2271C1A1955CB0600779D64 /* YFDataBase.m in Sources */ = {isa = PBXBuildFile; fileRef = C2271C191955CB0600779D64 /* YFDataBase.m */; };
+		C22E956419604B0A001B8745 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = C22E956319604B0A001B8745 /* LICENSE.txt */; };
 		C2C8FBED19547FCA00FDFDC7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */; };
 		C2C8FBEF19547FCA00FDFDC7 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEE19547FCA00FDFDC7 /* CoreGraphics.framework */; };
 		C2C8FBF119547FCA00FDFDC7 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBF019547FCA00FDFDC7 /* UIKit.framework */; };
@@ -45,6 +46,7 @@
 		C21334A7195C65800002A786 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		C2271C181955CB0600779D64 /* YFDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFDataBase.h; sourceTree = "<group>"; };
 		C2271C191955CB0600779D64 /* YFDataBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFDataBase.m; sourceTree = "<group>"; };
+		C22E956319604B0A001B8745 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = SOURCE_ROOT; };
 		C25D0EFE19603D1200A3F009 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		C2C8FBE919547FCA00FDFDC7 /* FMDB-ActiveRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FMDB-ActiveRecord.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -149,6 +151,7 @@
 		C2C8FBF319547FCA00FDFDC7 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				C22E956319604B0A001B8745 /* LICENSE.txt */,
 				C2E5F1E719550B60006520C8 /* README.md */,
 				C2C8FBF419547FCA00FDFDC7 /* FMDB-ActiveRecord-Info.plist */,
 				C2C8FBF519547FCA00FDFDC7 /* InfoPlist.strings */,
@@ -341,6 +344,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C22E956419604B0A001B8745 /* LICENSE.txt in Resources */,
 				C2C8FC3C1954806100FDFDC7 /* LICENSE.txt in Resources */,
 				C2C8FBF719547FCA00FDFDC7 /* InfoPlist.strings in Resources */,
 				C2E5F1E819550B60006520C8 /* README.md in Resources */,
