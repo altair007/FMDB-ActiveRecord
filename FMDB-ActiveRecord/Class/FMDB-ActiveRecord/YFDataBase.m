@@ -711,7 +711,6 @@
         [self limit: limit offset: offset];
     }
     
-    // FIXME: 如果一个 table,from 后面就不需要括号了.
     NSString * sql = [self YFDBCompileSelect];
     [self YFDBResetSelect];
     

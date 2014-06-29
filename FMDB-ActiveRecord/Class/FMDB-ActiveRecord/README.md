@@ -2,7 +2,7 @@
 ***
 **YFDB** 是在[FMDB](https://github.com/ccgus/fmdb)基础上对sqlite数据库操作的进一步封装,以使其支持 [Active Record](http://zh.wikipedia.org/wiki/Active_Record) 数据库模式。这种模式是以较少的程序代码来实现信息在数据库中的获取，插入，更改。有时只用一两行的代码就能完成对数据库的操作。 YFDB 不需要每一个数据库表拥有自己的类。它提供了一个更简单的接口。
 
-**注意: YFDB以[FMDB](https://github.com/ccgus/fmdb)为基础。如果更喜欢手动写 SQL 语句,你仍然可以按照原来的方式来使用[FMDB](https://github.com/ccgus/fmdb)来完成各种数据库操作。**
+**注意: YFDB以[FMDB](https://github.com/ccgus/fmdb)为基础,在使用 YFDB 之前请先在自己的工程中正确引入[FMDB](https://github.com/ccgus/fmdb)。如果更喜欢手动写 SQL 语句,你仍然可以按照原来的方式来使用[FMDB](https://github.com/ccgus/fmdb)来完成各种数据库操作。**
 
 * [选择数据](#selectData)
 * [插入数据](#insertData)
