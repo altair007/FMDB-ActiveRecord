@@ -141,20 +141,48 @@
     // !!!:迭代至此!
 //    $this->db->order_by('title desc, name asc');
 //    // 生成: ORDER BY title DESC, name ASC
-    [db orderBy: @"title" direction: YFDBOrderDeault];
-    FMResultSet * result =  [db get: @"blogs"];
+//    [db orderBy: @"title" direction: YFDBOrderDeault];
+//    FMResultSet * result =  [db get: @"blogs"];
 //    生成:
 //    SELECT *
 //    FROM (blogs)
 //    ORDER BY title DESC
     
-    NSMutableString * message = [NSMutableString stringWithCapacity: 42];
+//    [db orderBy: @"title DESC, name ASC"];
     
-    while ([result next]) {
-        [message appendFormat: @"%@\n", [result stringForColumn: @"title"]];
-    }
+//    [db like: @{@"title": @"颜风"}];
+//    NSLog(@"%lu", [db countAllResults: @"blogs"]);
     
-    [self showAlertViewWithMessage: message];
+//    NSDictionary * set = @{@"title": @"My title",
+//                           @"name": @"My Name",
+//                           @"date": @"My Date"};
+    
+//    [db emptyTable: @"mytable"];
+    
+//[db set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//[db insert: @"mytable"];
+    
+    [db emptyTable: @"mytable"];
+    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+    [db insert:@"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+//    [db update: @"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"} where: @{@"id": @"6aKc6aOO"}];
+// 生成:UPDATE mytable SET title = 'my title', name = 'my name', status = 'my status' WHERE  id = '6aKc6aOO'
+    
+// 生成:
+// SELECT *
+// FROM (blogs)
+// LIMIT 0, 5
+    
+    
+//    NSMutableString * message = [NSMutableString stringWithCapacity: 42];
+//    
+//    while ([result next]) {
+//        [message appendFormat: @"%@ %@\n", [result stringForColumn: @"title"],  [result stringForColumn: @"name"]];
+//    }
+//    
+//    [self showAlertViewWithMessage: message];
     [self showAlertViewWithMessage: db.lastErrorMessage];
     
 //    BOOL success = NO;

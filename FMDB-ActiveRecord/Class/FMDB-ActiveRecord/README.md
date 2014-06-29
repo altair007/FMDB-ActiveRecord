@@ -485,199 +485,141 @@ FMResultSet * result =  [db get: @"blogs"];
 如果你想在第一个参数中传递你自己的字符串, *orderBY:* 方法是一个更好的选择:
 
 ```
-$this->db->order_by('title desc, name asc'); 
-// 生成: ORDER BY title DESC, name ASC
+[db orderBy: @"title DESC, name ASC"];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT *
+// FROM (blogs)
+// ORDER BY title DESC, name ASC
 ```
 
-或者，多次调用本函数就可以排序多个字段。
+当然，你也可以多次向数据库对象发送 *orderBy:direction:* 消息来排序多个字段。
 
-$this->db->order_by("title", "desc");
-$this->db->order_by("name", "asc"); 
+```
+[db orderBy: @"title" direction: YFDBOrderDesc];
+[db orderBy: @"name" direction: YFDBOrderAsc];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT *
+// FROM (blogs)
+// ORDER BY title DESC, name ASC
+```
 
-// 生成: ORDER BY title DESC, name ASC
+### limit:offset:
+***
 
-说明: order_by() 曾经被称为 orderby(), 后者已经过时，现已从代码中移除 orderby()。
+限制查询所返回的结果数量,并设置结果的偏移量:
 
-说明: 目前 Oracle 和 MSSQL 的驱动还不支持随机排序，将被默认设置为 'ASC'(升序)。
+```
+[db limit: 5 offset: 15];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT *
+// FROM (blogs)
+// LIMIT 15, 5
+```
+如果你不打算设置结果的偏移量,可以直接向数据库对象发送 *limit:* 消息.
 
-$this->db->limit();
+```
+[db limit: 5];
+FMResultSet * result =  [db get: @"blogs"];
+// 生成:
+// SELECT *
+// FROM (blogs)
+// LIMIT 0, 5
+```
 
-限制查询所返回的结果数量:
+### countAllResults:
+***
 
-$this->db->limit(10);
+允许你获得某个特定的 **Active Record** 查询所返回的结果数量。可以使用 **Active Record** 限制方法，例如 *where:*, *orWhere:*, *like:side:*, *orLike:side:* 等等。范例：
 
-// 生成: LIMIT 10
-第二个参数设置的是结果偏移量。
+```
+[db like: @{@"title": @"颜风"}];
+NSLog(@"%lu", [db countAllResults: @"blogs"]);
+// 生成一个整数，例如 42  
+```
 
-$this->db->limit(10, 20);
-
-// 生成: LIMIT 20, 10 (仅限MySQL中。其它数据库有稍微不同的语法)
-$this->db->count_all_results();
-
-允许你获得某个特定的Active Record查询所返回的结果数量。可以使用Active Record限制函数，例如 where(), or_where(), like(), or_like() 等等。范例：
-
-echo $this->db->count_all_results('my_table');
-// 生成一个整数，例如 25
-
-$this->db->like('title', 'match');
-$this->db->from('my_table');
-echo $this->db->count_all_results();
-// 生成一个整数，例如 17  
 ##[插入数据](id:insertData)
 
-$this->db->insert();
+### insert:set:
+***
 
-生成一条基于你所提供的数据的SQL插入字符串并执行查询。你可以向函数传递 数组 或一个 对象。下面是一个使用数组的例子：
+生成一条基于你所提供的数据的SQL插入字符串并执行查询。
 
-$data = array(
-               'title' => 'My title' ,
-               'name' => 'My Name' ,
-               'date' => 'My date'
-            );
+```
+NSDictionary * set = @{@"title": @"My title",
+                       @"name": @"My Name",
+                       @"date": @"My Date"};
+[db insert: @"mytable" set: set];
+// 生成: INSERT INTO mytable (title, date, name) VALUES ('My title', 'My Date', 'My Name')
+```
 
-$this->db->insert('mytable', $data); 
+### insert:batch:
 
-// Produces: INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date')
-第一个参数包含表名，第二个是一个包含数据的关联数组。
+生成一条基于你所提供的数据的SQL插入字符串并执行查询。你可以向方法传递一个存储有要插入的数据的数组来插入同时插入多组数据.
 
-下面是一个使用对象的例子：
+```
+NSArray * batch = @[@{@"title": @"My title",
+                     @"name": @"My Name",
+                     @"date": @"My Date"},
+                   @{@"title": @"Another title",
+                     @"name": @"Another Name",
+                     @"date": @"Another Date"}];
+[db insert: @"mytable" batch: batch];
+// 生成: INSERT INTO mytable (date, name, title) VALUES ('My Date', 'My Name', 'My title'), ('Another Date', 'Another Name', 'Another title')
+```
 
-/*
-    class Myclass {
-        var $title = 'My Title';
-        var $content = 'My Content';
-        var $date = 'My Date';
-    }
-*/
+### set:
+***
 
-$object = new Myclass;
+此方法使您能够设置用于插入或更新的值。
 
-$this->db->insert('mytable', $object); 
+它可以用来代替那种直接传递数组或字典给插入和更新方法的方式:
 
-// Produces: INSERT INTO mytable (title, content, date) VALUES ('My Title', 'My Content', 'My Date')
-第一个参数包含表名，第二个是一个对象。
+```
+[db set: @{@"name": @"my name"}];
+[db insert: @"mytable"];
+// 生成: INSERT INTO mytable (name) VALUES ('my name')
+```
 
-注意: 所有的值已经被自动转换为安全查询。
+如果你多次调用本函数，它们会根据最终执行的是插入操作还是更新操作而自动合理地组织起来:
+```
+[db set: @{@"name": @"my name"}];
+[db set: @{@"title": @"my title"}];
+[db set: @{@"status": @"my status"}];
+[db insert: @"mytable"];
+// 生成: INSERT INTO mytable (title, name, status) VALUES ('my title', 'my name', 'my status')
+```
 
-$this->db->insert_batch();
+```
+[db set: @{@"name": @"my name"}];
+[db set: @{@"title": @"my title"}];
+[db set: @{@"status": @"my status"}];
+[db update: @"mytable"];
+// 生成: UPDATE mytable SET title = 'my title', name = 'my name', status = 'my status'
+```
 
-生成一条基于你所提供的数据的SQL插入字符串并执行查询。你可以向函数传递 数组 或一个 对象。下面是一个使用数组的例子：
+当然,一种更加便利的方式,直接将一个多键值对字典传递给此方法:
 
-$data = array(
-   array(
-      'title' => 'My title' ,
-      'name' => 'My Name' ,
-      'date' => 'My date'
-   ),
-   array(
-      'title' => 'Another title' ,
-      'name' => 'Another Name' ,
-      'date' => 'Another date'
-   )
-);
-
-$this->db->insert_batch('mytable', $data); 
-
-//生成： INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date'), ('Another title', 'Another name', 'Another date')
-第一个参数包含表名，第二个是一个包含数据的关联数组。
-
-注意: 所有的值已经被自动转换为安全查询。
-
-$this->db->set();
-
-本函数使您能够设置inserts(插入)或updates(更新)值。
-
-它可以用来代替那种直接传递数组给插入和更新函数的方式:
-
-$this->db->set('name', $name); 
-$this->db->insert('mytable'); 
-
-// 生成: INSERT INTO mytable (name) VALUES ('{$name}')
-如果你多次调用本函数，它们会被合理地组织起来，这取决于你执行的是插入操作还是更新操作:
-
-$this->db->set('name', $name);
-$this->db->set('title', $title);
-$this->db->set('status', $status);
-$this->db->insert('mytable');
-set() 也接受可选的第三个参数($escape)，如果此参数被设置为 FALSE，就可以阻止数据被转义。为了说明这种差异，这里将对 包含转义参数 和 不包含转义参数 这两种情况的 set() 函数做一个说明。
-
-$this->db->set('field', 'field+1', FALSE);
-$this->db->insert('mytable'); 
-// 得到 INSERT INTO mytable (field) VALUES (field+1)
-
-$this->db->set('field', 'field+1');
-$this->db->insert('mytable'); 
-// 得到 INSERT INTO mytable (field) VALUES ('field+1')
-
-你也可以将一个关联数组传递给本函数:
-
-$array = array('name' => $name, 'title' => $title, 'status' => $status);
-
-$this->db->set($array);
-$this->db->insert('mytable');
-或者一个对象也可以:
-
-/*
-    class Myclass {
-        var $title = 'My Title';
-        var $content = 'My Content';
-        var $date = 'My Date';
-    }
-*/
-
-$object = new Myclass;
-
-$this->db->set($object);
-$this->db->insert('mytable');  
+```
+[db set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"}];
+[db insert: @"mytable"];
+// 生成: INSERT INTO mytable (title, name, status) VALUES ('my title', 'my name', 'my status')
+```
 ##[更新数据](id:updataData)
 
-$this->db->update();
+### update:set:where: 
+***
 
-根据你提供的数据生成并执行一条update(更新)语句。你可以将一个数组或者对象传递给本函数。这里是一个使用数组的例子:
+根据你提供的数据生成并执行一条 **UPDATE** 语句。
 
-$data = array(
-               'title' => $title,
-               'name' => $name,
-               'date' => $date
-            );
-
-$this->db->where('id', $id);
-$this->db->update('mytable', $data); 
-
-// 生成:
-// UPDATE mytable 
-// SET title = '{$title}', name = '{$name}', date = '{$date}'
-// WHERE id = $id
-或者你也可以传递一个对象:
-
-/*
-    class Myclass {
-        var $title = 'My Title';
-        var $content = 'My Content';
-        var $date = 'My Date';
-    }
-*/
-
-$object = new Myclass;
-
-$this->db->where('id', $id);
-$this->db->update('mytable', $object); 
-
-// 生成:
-// UPDATE mytable 
-// SET title = '{$title}', name = '{$name}', date = '{$date}'
-// WHERE id = $id
-说明: 所有值都会被自动转义，以便生成安全的查询。
-
-你会注意到 $this->db->where() 函数的用法，它允许你设置 WHERE 子句。你可以有选择性地将这一信息直接以字符串的形式传递给 update 函数:
-
-$this->db->update('mytable', $data, "id = 4");
-或者是一个数组:
-
-$this->db->update('mytable', $data, array('id' => $id));
-在进行更新时，你还可以使用上面所描述的 $this->db->set() 函数。
-
-$this->db->update_batch();
+```
+[db update: @"mytable" set: @{@"name": @"my name", @"title": @"my title", @"status": @"my status"} where: @{@"id": @"6aKc6aOO"}];
+// 生成:UPDATE mytable SET title = 'my title', name = 'my name', status = 'my status' WHERE  id = '6aKc6aOO'
+```
+### $this->db->update_batch();
+***
 
 生成一条update命令是以你提供的数据为基础的，并执行查询。你可以传递一个数组或对象的参数给update_batch()函数。下面是一个使用一个数组作为参数的示例：Generates an update string based on the data you supply, and runs the query. You can either pass an array or an object to the function. Here is an example using an array:
 

@@ -16,6 +16,7 @@
 // !!!: 附 FMDB 中文翻译。
 // !!!: 有一个 大 BUG,当字段名或表名刚好是 table 等关键字时，会报错！
 // !!!: 对字段或值转义时,应该考虑到用户可能已经做了转义操作!容错机制太薄弱.
+// !!!: 考虑一种特殊情况: insert 的值,刚好是 select获取的值,即直接用一个 select 语句或者一个字段名作为 inset的 value,此时语法上 sqlite 编译通不过,是不支持,还是语法有错误? INSERT INTO mytable (field) VALUES (field+1)
 /**
  *  sqltie支持的join类型.
  */
