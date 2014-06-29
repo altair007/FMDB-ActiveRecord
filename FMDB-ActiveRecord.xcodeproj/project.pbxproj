@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C212A86C19603648007E103A /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = C212A86B19603648007E103A /* LICENSE.txt */; };
 		C2271C1A1955CB0600779D64 /* YFDataBase.m in Sources */ = {isa = PBXBuildFile; fileRef = C2271C191955CB0600779D64 /* YFDataBase.m */; };
 		C2C8FBED19547FCA00FDFDC7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */; };
 		C2C8FBEF19547FCA00FDFDC7 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2C8FBEE19547FCA00FDFDC7 /* CoreGraphics.framework */; };
@@ -43,10 +42,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C212A86B19603648007E103A /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		C21334A7195C65800002A786 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		C2271C181955CB0600779D64 /* YFDataBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFDataBase.h; sourceTree = "<group>"; };
 		C2271C191955CB0600779D64 /* YFDataBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFDataBase.m; sourceTree = "<group>"; };
+		C25D0EFE19603D1200A3F009 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		C2C8FBE919547FCA00FDFDC7 /* FMDB-ActiveRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FMDB-ActiveRecord.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2C8FBEC19547FCA00FDFDC7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		C2C8FBEE19547FCA00FDFDC7 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -202,10 +201,10 @@
 		C2C8FC1F1954806100FDFDC7 /* FMDB-ActiveRecord */ = {
 			isa = PBXGroup;
 			children = (
+				C25D0EFE19603D1200A3F009 /* LICENSE.txt */,
 				C21334A7195C65800002A786 /* README.md */,
 				C2271C181955CB0600779D64 /* YFDataBase.h */,
 				C2271C191955CB0600779D64 /* YFDataBase.m */,
-				C212A86B19603648007E103A /* LICENSE.txt */,
 			);
 			path = "FMDB-ActiveRecord";
 			sourceTree = "<group>";
@@ -342,7 +341,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C212A86C19603648007E103A /* LICENSE.txt in Resources */,
 				C2C8FC3C1954806100FDFDC7 /* LICENSE.txt in Resources */,
 				C2C8FBF719547FCA00FDFDC7 /* InfoPlist.strings in Resources */,
 				C2E5F1E819550B60006520C8 /* README.md in Resources */,
@@ -492,7 +490,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FMDB-ActiveRecord/FMDB-ActiveRecord-Prefix.pch";
 				INFOPLIST_FILE = "FMDB-ActiveRecord/FMDB-ActiveRecord-Info.plist";
@@ -506,7 +504,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FMDB-ActiveRecord/FMDB-ActiveRecord-Prefix.pch";
 				INFOPLIST_FILE = "FMDB-ActiveRecord/FMDB-ActiveRecord-Info.plist";

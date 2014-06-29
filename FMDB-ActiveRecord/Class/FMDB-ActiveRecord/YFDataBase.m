@@ -321,7 +321,9 @@
 
 + (instancetype) databaseWithPath: (NSString *)inPath
 {
-    return [[[self alloc] initWithPath: inPath] autorelease];
+    YFDataBase * temp = [[self alloc] initWithPath: inPath];
+    YFDBAutorelease(temp);
+    return temp;
 }
 
 - (instancetype)initWithPath:(NSString *)inPath
@@ -385,7 +387,9 @@
     self.arCacheOrderby = nil;
     self.arCacheSet = nil;
     
+#if ! __has_feature(objc_arc)
     [super dealloc];
+#endif
 }
 
 - (YFDataBase *)select: (NSString *) field
@@ -646,17 +650,19 @@
         orderbyStatement = @" RANDOM()";
     }
     
-    NSString * directionStr = @" ASC";
-    if (YFDBOrderDesc == direction) {
-        directionStr = @" DESC";
+    if (nil != orderbyStatement) {
+        NSString * directionStr = @" ASC";
+        if (YFDBOrderDesc == direction) {
+            directionStr = @" DESC";
+        }
+        
+        if (YFDBOrderDeault == direction) {
+            directionStr = @"";
+        }
+        
+        orderbyStatement = [NSString stringWithFormat: @"%@%@", orderBy, directionStr];
     }
-    
-    if (YFDBOrderDeault == direction) {
-        directionStr = @"";
-    }
-    
-    orderbyStatement = [NSString stringWithFormat: @"%@%@", orderBy, directionStr];
-    
+
     [self.arOrderby addObject: orderbyStatement];
     if (YES == self.arCaching) {
         [self.arCacheOrderby addObject: orderbyStatement];

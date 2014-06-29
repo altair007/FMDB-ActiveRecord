@@ -38,7 +38,6 @@
     #define instancetype id
 #endif
 
-
 typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary);
 
 

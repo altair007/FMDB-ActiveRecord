@@ -7,7 +7,6 @@
 //
 
 #import "YFAppDelegate.h"
-#import "FMDB.h"
 #import "YFDataBase.h"
 
 @implementation YFAppDelegate
@@ -15,12 +14,16 @@
 {
     self.window = nil;
     
+#if ! __has_feature(objc_arc)
     [super dealloc];
+#endif
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    UIWindow * window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window = window;
+    YFDBAutorelease(window);
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor grayColor];
     
@@ -29,9 +32,10 @@
     if (NO == [db open]) {
         [self showAlertViewWithMessage: db.lastErrorMessage];
     }
+    
+    /* 你可以在这里添加有关 YFDB 的各种测试. */
 
     [self showAlertViewWithMessage: db.lastErrorMessage];
-    
     [db close];
     
     [self.window makeKeyAndVisible];
@@ -42,7 +46,7 @@
 {
     UIAlertView * alertView = [[UIAlertView alloc] initWithTitle:@"数据库测试:" message: message delegate:nil cancelButtonTitle:@"确定" otherButtonTitles: nil];
     [alertView show];
-    [alertView release];
+    YFDBRelease(alertView);
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

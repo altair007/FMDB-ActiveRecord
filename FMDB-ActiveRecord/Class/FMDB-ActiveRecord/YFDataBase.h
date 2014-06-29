@@ -8,9 +8,25 @@
 
 #import "FMDatabase.h"
 
-// !!!: 使用类目扩展FMDataBase的一个可能思路:在类目中重写初始化和dealloc方法,进行添加和销毁"模拟属性"的相关操作.
-// !!!: 借鉴 FMDB 同时支持 ARC 和 MRC.
-// !!!: 我总觉得,有几处,是需要考虑缓存的数量的.结合"支持的缓存操作",具体明确一下!并用极限情况分析下.
+/* 同时提供对 ARC 和 MRC 的支持 */
+#if ! __has_feature(objc_arc)
+#define YFDBAutorelease(__v) ([__v autorelease]);
+#define YFDBReturnAutoreleased YFDBAutorelease
+
+#define YFDBRetain(__v) ([__v retain]);
+#define YFDBReturnRetained YFDBRetain
+
+#define YFDBRelease(__v) ([__v release]);
+#else
+// -fobjc-arc
+#define YFDBAutorelease(__v)
+#define YFDBReturnAutoreleased(__v) (__v)
+
+#define YFDBRetain(__v)
+#define YFDBReturnRetained(__v) (__v)
+
+#define YFDBRelease(__v)
+#endif
 
 /**
  *  sqltie支持的join类型.
